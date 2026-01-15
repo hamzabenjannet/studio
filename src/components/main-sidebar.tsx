@@ -20,6 +20,7 @@ import {
   Settings,
   ListTodo,
   Car,
+  Shapes,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -110,6 +111,14 @@ export function MainSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/entities")} tooltip="Entities">
+                <Link href="/entities">
+                  <Shapes />
+                  <span>Entities</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Paramètres">
                 <Link href="/settings">
