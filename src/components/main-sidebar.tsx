@@ -19,6 +19,7 @@ import {
   Receipt,
   Settings,
   ListTodo,
+  Car,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -74,10 +75,18 @@ export function MainSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/clients")} tooltip="Clients & Véhicules">
+            <SidebarMenuButton asChild isActive={isActive("/clients")} tooltip="Clients">
               <Link href="/clients">
                 <Users />
-                <span>Clients & Véhicules</span>
+                <span>Clients</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/vehicles")} tooltip="Véhicules">
+              <Link href="/vehicles">
+                <Car />
+                <span>Véhicules</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
