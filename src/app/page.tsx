@@ -1,3 +1,5 @@
+"use client";
+
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/main-sidebar";
 import { Header } from "@/components/header";
@@ -6,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Wrench, ListTodo, Receipt } from "lucide-react";
+import withAuth from "@/hoc/withAuth";
 
 // Mock data
 const recentRepairs = [
@@ -24,8 +27,7 @@ const getStatusVariant = (status: string) => {
   }
 };
 
-
-export default function Home() {
+function HomePage() {
   return (
     <SidebarProvider>
       <MainSidebar />
@@ -116,3 +118,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+export default withAuth(HomePage);

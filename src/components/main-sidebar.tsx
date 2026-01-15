@@ -59,7 +59,7 @@ export function MainSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/tasks")} tooltip="Tâches">
-              <Link href="#">
+              <Link href="/tasks">
                 <ListTodo />
                 <span>Tâches</span>
               </Link>
@@ -67,7 +67,7 @@ export function MainSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/repairs")} tooltip="Ordres de Réparation">
-              <Link href="#">
+              <Link href="/repairs">
                 <Wrench />
                 <span>Ordres de Réparation</span>
               </Link>
@@ -75,7 +75,7 @@ export function MainSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/clients")} tooltip="Clients & Véhicules">
-              <Link href="#">
+              <Link href="/clients">
                 <Users />
                 <span>Clients & Véhicules</span>
               </Link>
@@ -83,7 +83,7 @@ export function MainSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/stock")} tooltip="Stock">
-              <Link href="#">
+              <Link href="/stock">
                 <Box />
                 <span>Stock</span>
               </Link>
@@ -91,7 +91,7 @@ export function MainSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/billing")} tooltip="Facturation">
-              <Link href="#">
+              <Link href="/billing">
                 <Receipt />
                 <span>Facturation</span>
               </Link>
@@ -103,7 +103,7 @@ export function MainSidebar() {
         <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Paramètres">
-                <Link href="#">
+                <Link href="/settings">
                   <Settings />
                   <span>Paramètres</span>
                 </Link>
