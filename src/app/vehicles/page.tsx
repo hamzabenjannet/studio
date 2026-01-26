@@ -105,6 +105,13 @@ function VehiclesPage() {
     const handleFormSelectChange = (id: 'owner' | 'status', value: string) => {
         setFormData(prev => ({ ...prev, [id]: value }));
     };
+
+    const handleFormOpenChange = (open: boolean) => {
+        setIsFormOpen(open);
+        if (!open) {
+            setEditingVehicle(null);
+        }
+    };
     
     const handleAddNewClick = () => {
         setEditingVehicle(null);
@@ -129,8 +136,7 @@ function VehiclesPage() {
             };
             setVehicles(prev => [...prev, newVehicle]);
         }
-        setIsFormOpen(false);
-        setEditingVehicle(null);
+        handleFormOpenChange(false);
     };
 
   return (
@@ -147,7 +153,7 @@ function VehiclesPage() {
             <Button onClick={handleAddNewClick}><Plus className='mr-2 h-4 w-4' />Ajouter un véhicule</Button>
           </div>
            
-           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+           <Dialog open={isFormOpen} onOpenChange={handleFormOpenChange}>
               <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>{editingVehicle ? 'Modifier le véhicule' : 'Ajouter un nouveau véhicule'}</DialogTitle>
@@ -205,7 +211,7 @@ function VehiclesPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Annuler</Button>
+                    <Button type="button" variant="outline" onClick={() => handleFormOpenChange(false)}>Annuler</Button>
                     <Button type="submit">Sauvegarder</Button>
                     </DialogFooter>
                 </form>
