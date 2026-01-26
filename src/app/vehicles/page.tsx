@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/main-sidebar";
 import { Header } from "@/components/header";
@@ -28,7 +28,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +48,7 @@ interface Vehicle {
     model: string;
     year: number;
     plateNumber: string;
+    vin: string;
     owner: string;
     status: 'Active' | 'In-Repair' | 'Archived' | 'Sold';
 }
@@ -61,9 +61,9 @@ const mockClients = [
 ];
 
 const initialVehicles: Vehicle[] = [
-    { id: 'veh-1', make: 'Renault', model: 'Clio', year: 2022, plateNumber: 'AB-123-CD', owner: 'Jean Dupont', status: 'Active' },
-    { id: 'veh-2', make: 'Peugeot', model: '208', year: 2021, plateNumber: 'EF-456-GH', owner: 'Marie Curie', status: 'In-Repair' },
-    { id: 'veh-3', make: 'Citroen', model: 'C3', year: 2020, plateNumber: 'IJ-789-KL', owner: 'Pierre Martin', status: 'Archived' },
+    { id: 'veh-1', make: 'Renault', model: 'Clio', year: 2022, plateNumber: 'AB-123-CD', vin: 'VF1CL0H...', owner: 'Jean Dupont', status: 'Active' },
+    { id: 'veh-2', make: 'Peugeot', model: '208', year: 2021, plateNumber: 'EF-456-GH', vin: 'VF3UBH...', owner: 'Marie Curie', status: 'In-Repair' },
+    { id: 'veh-3', make: 'Citroen', model: 'C3', year: 2020, plateNumber: 'IJ-789-KL', vin: 'VF7SCN...', owner: 'Pierre Martin', status: 'Archived' },
 ];
 
 const statusOptions: Vehicle['status'][] = ['Active', 'In-Repair', 'Archived', 'Sold'];
@@ -80,21 +80,57 @@ const getStatusVariant = (status: string) => {
   }
 };
 
+const newVehicleInitialState: Omit<Vehicle, 'id'> = {
+    make: '',
+    model: '',
+    year: new Date().getFullYear(),
+    plateNumber: '',
+    vin: '',
+    owner: '',
+    status: 'Active',
+};
+
 
 function VehiclesPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+    const [formData, setFormData] = useState<Omit<Vehicle, 'id'>>(newVehicleInitialState);
     
-    // You would manage form state here, e.g., with useState or react-hook-form
+    const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: id === 'year' ? parseInt(value) || 0 : value }));
+    };
+
+    const handleFormSelectChange = (id: 'owner' | 'status', value: string) => {
+        setFormData(prev => ({ ...prev, [id]: value }));
+    };
+    
+    const handleAddNewClick = () => {
+        setEditingVehicle(null);
+        setFormData(newVehicleInitialState);
+        setIsFormOpen(true);
+    };
+
+    const handleEditClick = (vehicle: Vehicle) => {
+        setEditingVehicle(vehicle);
+        setFormData(vehicle);
+        setIsFormOpen(true);
+    };
+
     const handleSaveVehicle = (event: React.FormEvent) => {
         event.preventDefault();
-        // Logic to save the new vehicle
-        // For demonstration, we'll just log and close the form
-        console.log("Saving vehicle...");
-        // Add to list
-        // const newVehicle = ...
-        // setVehicles(prev => [...prev, newVehicle]);
+        if (editingVehicle) {
+            setVehicles(vehicles.map(v => v.id === editingVehicle.id ? { ...formData, id: v.id } : v));
+        } else {
+            const newVehicle: Vehicle = {
+                id: `veh-${Date.now()}`,
+                ...formData
+            };
+            setVehicles(prev => [...prev, newVehicle]);
+        }
         setIsFormOpen(false);
+        setEditingVehicle(null);
     };
 
   return (
@@ -108,55 +144,55 @@ function VehiclesPage() {
               <h1 className="text-3xl font-headline font-bold tracking-tight">Véhicules</h1>
               <p className="text-muted-foreground">Gérez la flotte de véhicules de vos clients.</p>
             </div>
-             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-              <DialogTrigger asChild>
-                <Button><Plus className='mr-2 h-4 w-4' />Ajouter un véhicule</Button>
-              </DialogTrigger>
+            <Button onClick={handleAddNewClick}><Plus className='mr-2 h-4 w-4' />Ajouter un véhicule</Button>
+          </div>
+           
+           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
               <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Ajouter un nouveau véhicule</DialogTitle>
+                  <DialogTitle>{editingVehicle ? 'Modifier le véhicule' : 'Ajouter un nouveau véhicule'}</DialogTitle>
                   <DialogDescription>
-                    Remplissez les informations ci-dessous pour ajouter un nouveau véhicule.
+                    {editingVehicle ? 'Mettez à jour les informations du véhicule.' : 'Remplissez les informations ci-dessous pour ajouter un nouveau véhicule.'}
                   </DialogDescription>
                 </DialogHeader>
                  <form onSubmit={handleSaveVehicle}>
                     <div className="grid grid-cols-2 gap-4 py-4">
                         <div className="space-y-2">
                             <Label htmlFor="make">Marque</Label>
-                            <Input id="make" placeholder="Renault" />
+                            <Input id="make" placeholder="Renault" value={formData.make} onChange={handleFormInputChange} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="model">Modèle</Label>
-                            <Input id="model" placeholder="Clio" />
+                            <Input id="model" placeholder="Clio" value={formData.model} onChange={handleFormInputChange} />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="year">Année</Label>
-                            <Input id="year" type="number" placeholder="2023" />
+                            <Input id="year" type="number" placeholder="2023" value={formData.year} onChange={handleFormInputChange} />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="plateNumber">Immatriculation</Label>
-                            <Input id="plateNumber" placeholder="AB-123-CD" />
+                            <Input id="plateNumber" placeholder="AB-123-CD" value={formData.plateNumber} onChange={handleFormInputChange} />
                         </div>
                          <div className="col-span-2 space-y-2">
                             <Label htmlFor="vin">VIN</Label>
-                            <Input id="vin" placeholder="VF123ABC..." />
+                            <Input id="vin" placeholder="VF123ABC..." value={formData.vin} onChange={handleFormInputChange} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="owner">Propriétaire</Label>
-                            <Select>
+                            <Select value={formData.owner} onValueChange={(value) => handleFormSelectChange('owner', value)}>
                                 <SelectTrigger id="owner">
                                 <SelectValue placeholder="Sélectionnez un propriétaire" />
                                 </SelectTrigger>
                                 <SelectContent>
                                 {mockClients.map(client => (
-                                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                                    <SelectItem key={client.id} value={client.name}>{client.name}</SelectItem>
                                 ))}
                                 </SelectContent>
                             </Select>
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="status">Statut</Label>
-                            <Select defaultValue='Active'>
+                            <Select value={formData.status} onValueChange={(value) => handleFormSelectChange('status', value as Vehicle['status'])}>
                                 <SelectTrigger id="status">
                                 <SelectValue placeholder="Sélectionnez un statut" />
                                 </SelectTrigger>
@@ -175,7 +211,6 @@ function VehiclesPage() {
                 </form>
               </DialogContent>
             </Dialog>
-          </div>
            
            <Card>
                 <CardHeader>
@@ -219,7 +254,7 @@ function VehiclesPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem>Modifier</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleEditClick(vehicle)}>Modifier</DropdownMenuItem>
                                         <DropdownMenuItem>Créer OR</DropdownMenuItem>
                                         <DropdownMenuItem className="text-destructive">Supprimer</DropdownMenuItem>
                                         </DropdownMenuContent>
