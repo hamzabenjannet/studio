@@ -29,6 +29,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -96,6 +106,8 @@ function VehiclesPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
     const [formData, setFormData] = useState<Omit<Vehicle, 'id'>>(newVehicleInitialState);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
 
     useEffect(() => {
         if (!isFormOpen) {
@@ -137,6 +149,19 @@ function VehiclesPage() {
             setVehicles(prev => [...prev, newVehicle]);
         }
         setIsFormOpen(false);
+    };
+
+    const handleDeleteClick = (vehicle: Vehicle) => {
+        setVehicleToDelete(vehicle);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (vehicleToDelete) {
+            setVehicles(vehicles.filter(v => v.id !== vehicleToDelete.id));
+        }
+        setIsDeleteDialogOpen(false);
+        setVehicleToDelete(null);
     };
 
   return (
@@ -217,6 +242,21 @@ function VehiclesPage() {
                 </form>
               </DialogContent>
             </Dialog>
+
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action est irréversible. Le véhicule sera définitivement supprimé.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmDelete}>Supprimer</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
            
            <Card>
                 <CardHeader>
@@ -262,7 +302,12 @@ function VehiclesPage() {
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem onClick={() => handleEditClick(vehicle)}>Modifier</DropdownMenuItem>
                                         <DropdownMenuItem>Créer OR</DropdownMenuItem>
-                                        <DropdownMenuItem className="text-destructive">Supprimer</DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                            onClick={() => handleDeleteClick(vehicle)}
+                                        >
+                                            Supprimer
+                                        </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
