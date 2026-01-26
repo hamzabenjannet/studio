@@ -96,6 +96,13 @@ function VehiclesPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
     const [formData, setFormData] = useState<Omit<Vehicle, 'id'>>(newVehicleInitialState);
+
+    useEffect(() => {
+        if (!isFormOpen) {
+            setEditingVehicle(null);
+            setFormData(newVehicleInitialState);
+        }
+    }, [isFormOpen]);
     
     const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -104,13 +111,6 @@ function VehiclesPage() {
 
     const handleFormSelectChange = (id: 'owner' | 'status', value: string) => {
         setFormData(prev => ({ ...prev, [id]: value }));
-    };
-
-    const handleFormOpenChange = (open: boolean) => {
-        setIsFormOpen(open);
-        if (!open) {
-            setEditingVehicle(null);
-        }
     };
     
     const handleAddNewClick = () => {
@@ -136,7 +136,7 @@ function VehiclesPage() {
             };
             setVehicles(prev => [...prev, newVehicle]);
         }
-        handleFormOpenChange(false);
+        setIsFormOpen(false);
     };
 
   return (
@@ -153,7 +153,7 @@ function VehiclesPage() {
             <Button onClick={handleAddNewClick}><Plus className='mr-2 h-4 w-4' />Ajouter un véhicule</Button>
           </div>
            
-           <Dialog open={isFormOpen} onOpenChange={handleFormOpenChange}>
+           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
               <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>{editingVehicle ? 'Modifier le véhicule' : 'Ajouter un nouveau véhicule'}</DialogTitle>
@@ -211,7 +211,7 @@ function VehiclesPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => handleFormOpenChange(false)}>Annuler</Button>
+                    <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Annuler</Button>
                     <Button type="submit">Sauvegarder</Button>
                     </DialogFooter>
                 </form>
