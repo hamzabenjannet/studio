@@ -28,12 +28,27 @@ interface Entity {
 
 const ATTRIBUTE_TYPES: AttributeType[] = ["string", "number", "boolean", "date"];
 
+const baseAttributes: Omit<Attribute, 'id'>[] = [
+    { name: '_id', type: 'string' },
+    { name: 'created_at', type: 'date' },
+    { name: 'updated_at', type: 'date' },
+    { name: 'archived_at', type: 'date' },
+    { name: 'deleted_at', type: 'date' },
+    { name: 'status', type: 'string' },
+];
+
 function EntitiesPage() {
   const [entities, setEntities] = useState<Entity[]>([
     { id: 'entity-1', name: 'Client', attributes: [
       { id: 'attr-1-1', name: 'firstName', type: 'string' },
       { id: 'attr-1-2', name: 'lastName', type: 'string' },
       { id: 'attr-1-3', name: 'signupDate', type: 'date' },
+    ] },
+    { id: 'entity-2', name: 'Vehicle', attributes: [
+      { id: 'attr-2-1', name: 'make', type: 'string' },
+      { id: 'attr-2-2', name: 'model', type: 'string' },
+      { id: 'attr-2-3', name: 'year', type: 'number' },
+      { id: 'attr-2-4', name: 'vin', type: 'string' },
     ] },
   ]);
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(entities[0] || null);
@@ -43,7 +58,10 @@ function EntitiesPage() {
     const newEntity: Entity = {
       id: newId,
       name: 'New Entity',
-      attributes: [{ id: `attr-${newId}-1`, name: 'id', type: 'string' }],
+      attributes: baseAttributes.map((attr, index) => ({
+          ...attr,
+          id: `attr-${newId}-${index + 1}`,
+      }))
     };
     setEntities([...entities, newEntity]);
     setSelectedEntity(newEntity);
@@ -117,7 +135,7 @@ function EntitiesPage() {
                                 <Button 
                                     variant={selectedEntity?.id === entity.id ? "secondary" : "ghost"}
                                     className="w-full justify-start"
-                                    onClick={() => setSelectedEntity(entity)}
+                                    onClick={() => setSelectedEntity(entities.find(e => e.id === entity.id) || null)}
                                 >
                                     {entity.name}
                                 </Button>
