@@ -1,6 +1,8 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
+import { useTranslations } from "next-intl";
+import { useI18n } from "@/components/providers/i18n-provider";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,11 +22,13 @@ const userAvatar = {
   id: "user-avatar",
   description: "User avatar placeholder",
   imageUrl: "https://picsum.photos/seed/U1/40/40",
-  imageHint: "person face"
-}
+  imageHint: "person face",
+};
 
 export function Header() {
   const { user, logout } = useAuth();
+  const t = useTranslations("Header");
+  const { locale, setLocale } = useI18n();
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -46,14 +50,26 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={userAvatar.imageUrl} alt={userAvatar.description} data-ai-hint={userAvatar.imageHint} />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src={userAvatar.imageUrl}
+                    alt={userAvatar.description}
+                    data-ai-hint={userAvatar.imageHint}
+                  />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("myAccount")}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Language / Langue</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setLocale("en")}>
+                {locale === "en" ? "✓ " : ""}English
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLocale("fr")}>
+                {locale === "fr" ? "✓ " : ""}Français
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/profile">Profil</Link>
