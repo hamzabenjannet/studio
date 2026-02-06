@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { signin } from "../services/auth/auth.service";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,10 +22,22 @@ export default function LoginPage() {
   const [email, setEmail] = React.useState("demo@example.com");
   const [password, setPassword] = React.useState("demopass");
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real app, you'd call an API. Here we'll just simulate it.
-    login({ email }, "atoken_place_holder");
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    // use the signin function from the auth service
+    const signinResults = await signin({ email, password });
+
+    const { expires_in, access_token, refresh_token, message } = signinResults;
+
+    console.log("/login response:", signinResults);
+
+    if (!access_token || !refresh_token || !expires_in) {
+      // Show an error message to the user
+      alert(message || "access_token is missing");
+      throw new Error(message || "access_token is missing");
+    }
+    // if the login is successful, store the token in the context
+    login({ email }, { expires_in, access_token, refresh_token });
     router.push("/");
   };
 
@@ -61,10 +74,10 @@ export default function LoginPage() {
                     Mot de passe oublié?
                   </Link>
                 </div>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  required 
+                <Input
+                  id="password"
+                  type="password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />

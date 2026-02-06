@@ -1,7 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 interface User {
   [key: string]: any;
@@ -10,7 +16,10 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (user: User, token: string) => void;
+  login: (
+    user: User,
+    token: { expires_in: string; access_token: string; refresh_token: string },
+  ) => void;
   logout: () => void;
 }
 
@@ -23,40 +32,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    const access_token = localStorage.getItem("access_token");
+    if (access_token) {
       // In a real app, you'd validate the token with your API
       // For now, we'll just use a placeholder user
-      setUser({ email: 'demo@example.com' }); 
+      setUser({
+        email: "demo@example.com",
+        name: "Max",
+        family_name: "Robinson",
+      });
     }
     setLoading(false);
   }, []);
 
-  const login = (user: User, token: string) => {
-    localStorage.setItem('token', token);
+  const login = (
+    user: User,
+    token: { expires_in: string; access_token: string; refresh_token: string },
+  ) => {
+    localStorage.setItem("access_token", token.access_token);
+    localStorage.setItem("refresh_token", token.refresh_token);
+    localStorage.setItem("expires_in", token.expires_in);
+
     setUser(user);
-    router.push('/');
+    router.push("/");
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("expires_in");
     setUser(null);
-    router.push('/login');
+    router.push("/login");
   };
-  
+
   const value = { user, loading, login, logout };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
