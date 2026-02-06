@@ -1,0 +1,15 @@
+{
+  "Header": {
+    "searchPlaceholder": "Search...",
+    "notifications": "Notifications",
+    "myAccount": "My Account",
+    "profile": "Profile",
+    "billing": "Billing",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "LanguageSwitcher": {
+    "label": "Language"
+  }
+}

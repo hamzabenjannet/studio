@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { signin } from "../services/auth/auth.service";
+import { signin } from "@/services/auth/auth.service";
 
 export default function LoginPage() {
   const router = useRouter();

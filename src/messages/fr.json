@@ -1,0 +1,15 @@
+{
+  "Header": {
+    "searchPlaceholder": "Rechercher...",
+    "notifications": "Notifications",
+    "myAccount": "Mon Compte",
+    "profile": "Profil",
+    "billing": "Facturation",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "login": "Connexion"
+  },
+  "LanguageSwitcher": {
+    "label": "Langue"
+  }
+}

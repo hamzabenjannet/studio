@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { signin, signup } from "../services/auth/auth.service";
+import { signin, signup } from "@/services/auth/auth.service";
 
 export default function SignupPage() {
   const router = useRouter();
