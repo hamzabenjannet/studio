@@ -347,37 +347,16 @@ function ElementsPage() {
     const fetchElements = async () => {
       const filterEntitiesPayloadDto: FilterEntitiesPayloadDto = {
         attributes: {},
-        // perPage?: string;
-        // offset?: string;
-        // page?: string;
-        // sortField?: string;
-        // sortOrder?: string;
-        // wildcard?: string;
-        // filterPayload: Record<string, string | undefined>;
         pagination: {
           perPage: itemsPerPage.toString(),
           // offset: "0",
           page: currentPage.toString(),
-          // sortField: "_id",
+          sortField: "_id",
           sortOrder: "asc",
-          // sortField: "",
         },
         wildcard: "true",
       };
-      const response = await filterEntities(
-        filterEntitiesPayloadDto,
-        //   {
-        //   perPage: itemsPerPage.toString(),
-        //   // offset: "0",
-        //   page: currentPage.toString(),
-        //   // sortField: "_id",
-        //   sortOrder: "asc",
-        //   wildcard: "true",
-        //   filterPayload: {
-        //     //   // TODO: fix filter attributes
-        //   },
-        // }
-      );
+      const response = await filterEntities(filterEntitiesPayloadDto);
       const data = await response.json();
       console.log("response data", data);
 
@@ -526,16 +505,6 @@ function ElementsPage() {
         variant: "default",
       });
     }
-
-    // console.log("delete response data", data);
-
-    // const message = "Item deletion is not possible, it will be archived later";
-
-    // toast({
-    //   title: "deleted successfully",
-    //   variant: "default",
-    // });
-
     setElements(elements.filter((c) => c._id !== itemToDelete._id));
 
     setIsDeleteDialogOpen(false);
