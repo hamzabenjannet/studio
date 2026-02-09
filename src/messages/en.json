@@ -1,4 +1,8 @@
 {
+  "common": {
+    "actions": "Actions",
+    "notifications": "Notifications"
+  },
   "Header": {
     "searchPlaceholder": "Search...",
     "notifications": "Notifications",
@@ -11,5 +15,46 @@
   },
   "LanguageSwitcher": {
     "label": "Language"
+  },
+  "auth": {
+    "item": {
+      "update": "Update"
+    },
+    "login": "Login",
+    "signup": "Signup"
+  },
+  "usersPage": {
+    "pageTitle": "users",
+    "pageSubtitle": "Manage your users",
+    "addItemButton": "Add",
+    "itemsTabeTitle": "users List",
+    "itemsTabeSubtitle": "View and manage all registered users.",
+    "itemsTabeColumnNameAttrName": "Name",
+    "itemsTabeColumnNameAttrEmail": "Email",
+    "itemsTabeColumnNameAttrPhone": "Phone",
+    "itemsTabeColumnNameAttrAddress": "Address",
+    "itemsTabeColumnNameAttrStatus": "Status",
+    "itemsTabeColumnNameAttrActions": "Actions",
+    "itemsTabeColumnNameAttrActionsDropdownButtonEdit": "Edit",
+    "itemsTabeColumnNameAttrActionsDropdownButtonDelete": "Delete",
+    "itemsTabeColumnNameAttrActionsDropdownButtonViewCars": "View Cars",
+    "alertDeleteItem": "Are you sure you want to delete?",
+    "alertDeleteItemTitle": "Delete user",
+    "alertDeleteItemDescription": "This action is irreversible. This will be permanently deleted.",
+    "alertDeleteItemConfirm": "Delete",
+    "cancelText": "Cancel",
+    "saveText": "Save",
+    "addItemDialogTitle": "Add a new user",
+    "addItemDialogSubtitle": "Fill in the information below.",
+    "editItemDialogTitle": "Edit the user",
+    "editItemDialogSubtitle": "Update the user information.",
+    "itemAttrInputText1Label": "Given Name",
+    "itemAttrInputText2Label": "Family Name",
+    "itemAttrEmailLabel": "Email",
+    "itemAttrPasswordLabel": "Password",
+    "itemAttrPhoneLabel": "Phone",
+    "itemAttrAddressLabel": "Address",
+    "itemStatusLabel": "Status",
+    "itemSelectStatusPlaceholder": "Select Status"
   }
 }

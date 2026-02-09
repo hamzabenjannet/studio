@@ -33,13 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const access_token = localStorage.getItem("access_token");
-    if (access_token) {
+    if (access_token && user) {
       // In a real app, you'd validate the token with your API
       // For now, we'll just use a placeholder user
       setUser({
-        email: "demo@example.com",
-        name: "Max",
-        family_name: "Robinson",
+        ...user,
+        // Add other user properties as needed
       });
     }
     setLoading(false);

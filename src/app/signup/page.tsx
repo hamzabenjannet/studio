@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { signin, signup } from "@/services/auth/auth.service";
+import { toast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -28,26 +29,37 @@ export default function SignupPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const formData = { email, password, givenName, familyName };
+
+    const formattedFormData = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => {
+        if (key === "password") {
+          return [key, value];
+        }
+        return [key, value.toLowerCase()];
+      }),
+    );
     // signup
-    const signupResults = await signup({
-      email,
-      password,
-      givenName,
-      familyName,
-    });
+    const signupResults = await signup(formattedFormData);
 
     console.log("signupResults", signupResults);
 
     const { email: signupEmail, message } = signupResults;
 
     if (!signupEmail) {
-      alert(message);
+      // alert(message);
+      toast({
+        title: message,
+        variant: "destructive",
+      });
       return;
     }
 
-    alert(
-      "Signup successful, Signing-in automatically for now, Later check your email to verify your account.",
-    );
+    toast({
+      title:
+        "Signup successful, Signing-in automatically for now, Later check your email to verify your account.",
+      variant: "default",
+    });
 
     // signin
     const signinResults = await signin({ email: signupEmail, password });

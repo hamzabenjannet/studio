@@ -2,7 +2,7 @@
 
 import { API_URL } from "@/app/consts";
 
-// signin
+// login
 export const signin = async ({
   email,
   password,
@@ -22,29 +22,30 @@ export const signin = async ({
 };
 
 // signup
-
-export const signup = async ({
-  email,
-  password,
-  givenName,
-  familyName,
-}: {
-  email: string;
-  password: string;
-  givenName: string;
-  familyName: string;
-}) => {
+export const signup = async (signUpDto: Record<string, string>) => {
   const response = await fetch(`${API_URL}/signUp`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      email,
-      password,
-      given_name: givenName,
-      family_name: familyName,
-    }),
+    body: JSON.stringify(signUpDto),
+  });
+  const data = await response.json();
+  return data;
+};
+
+// update user details
+export const updateItem = async (
+  updateEntityDto: // Record<string, string>
+  Record<string, string | number | boolean | undefined | null>,
+) => {
+  const response = await fetch(`${API_URL}/userDetails`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+    },
+    body: JSON.stringify(updateEntityDto),
   });
   const data = await response.json();
   return data;

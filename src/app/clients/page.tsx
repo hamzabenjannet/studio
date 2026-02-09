@@ -1,26 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { MainSidebar } from "@/components/main-sidebar";
 import { Header } from "@/components/header";
 import withAuth from "@/hoc/withAuth";
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -41,112 +33,514 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from '@/components/ui/badge';
-import { Plus, MoreHorizontal } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-interface Client {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    status: 'Actif' | 'Inactif';
+import { TableComponent } from "nextjs-reusable-table";
+import "nextjs-reusable-table/dist/index.css";
+import {
+  filterEntities,
+  FilterEntitiesPayloadDto,
+} from "@/services/users/users.service";
+import { signup, updateItem } from "@/services/auth/auth.service";
+import { toast } from "@/hooks/use-toast";
+import { StatusEnum } from "@/enums/status.enum";
+
+interface IEntity {
+  _id?: number;
+  givenName?: string;
+  familyName?: string;
+  email?: string;
+  phone?: string;
+  status?: StatusEnum | undefined;
+  password?: string;
+  createdAt?: string;
+  archivedAt?: string;
 }
 
-const initialClients: Client[] = [
-    { id: 'client-1', firstName: 'Jean', lastName: 'Dupont', email: 'jean.dupont@email.com', phone: '0612345678', status: 'Actif' },
-    { id: 'client-2', firstName: 'Marie', lastName: 'Curie', email: 'marie.curie@email.com', phone: '0687654321', status: 'Actif' },
-    { id: 'client-3', firstName: 'Pierre', lastName: 'Martin', email: 'pierre.martin@email.com', phone: '0611223344', status: 'Inactif' },
-];
+export class Entity implements IEntity {
+  _id!: number;
+  givenName?: string | undefined;
+  familyName?: string | undefined;
+  email?: string;
+  phone?: string;
+  status?: StatusEnum | undefined;
+  password?: string | undefined;
+  createdAt?: string | undefined;
+  archivedAt?: string | undefined;
+}
 
-const statusOptions: Client['status'][] = ['Actif', 'Inactif'];
+const newItemInitialState: IEntity = Object.fromEntries(
+  Object.entries(new Entity()).map(([key, value]) => [key, value]),
+) as unknown as IEntity;
 
-const getStatusVariant = (status: string) => {
-  switch (status) {
-    case 'Actif': return 'secondary';
-    case 'Inactif': return 'outline';
-    default: return 'secondary';
-  }
+const entityForms = {
+  formInputText1: {
+    label: {
+      component: {
+        Render: ({
+          props,
+          translation,
+        }: {
+          props?: React.ComponentProps<typeof Label>;
+          translation?: (key: string) => string;
+        }) => {
+          return (
+            <Label {...props}>
+              {translation
+                ? translation("itemAttrInputText1Label")
+                : "itemAttrInputText1Label"}
+            </Label>
+          );
+        },
+      },
+    },
+    input: {
+      type: "text",
+      component: {
+        dataEntityAttrName: "givenName",
+        Render: (props?: React.ComponentProps<typeof Input>) => {
+          return (
+            <Input
+              id="formInputText1"
+              type="text"
+              placeholder="Jean"
+              value={props?.value === null ? "" : props?.value}
+              onChange={props?.onChange || (() => {})}
+              data-entity-attr-name="givenName"
+              {...props}
+            />
+          );
+        },
+      },
+    },
+  },
+  formInputText2: {
+    label: {
+      component: {
+        Render: ({
+          props,
+          translation,
+        }: {
+          props?: React.ComponentProps<typeof Label>;
+          translation?: (key: string) => string;
+        }) => {
+          return (
+            <Label {...props}>
+              {translation
+                ? translation("itemAttrInputText2Label")
+                : "itemAttrInputText2Label"}
+            </Label>
+          );
+        },
+      },
+    },
+    input: {
+      type: "text",
+      component: {
+        dataEntityAttrName: "familyName",
+        Render: (props?: React.ComponentProps<typeof Input>) => {
+          return (
+            <Input
+              id="formInputText2"
+              type="text"
+              placeholder="Dupont"
+              value={props?.value === null ? "" : props?.value}
+              onChange={props?.onChange || (() => {})}
+              data-entity-attr-name="familyName"
+              {...props}
+            />
+          );
+        },
+      },
+    },
+  },
+  formInputText3: {
+    label: {
+      component: {
+        Render: ({
+          props,
+          translation,
+        }: {
+          props?: React.ComponentProps<typeof Label>;
+          translation?: (key: string) => string;
+        }) => {
+          return (
+            <Label {...props}>
+              {translation
+                ? translation("itemAttrEmailLabel")
+                : "itemAttrInputText3Label"}
+            </Label>
+          );
+        },
+      },
+    },
+    input: {
+      type: "text",
+      component: {
+        dataEntityAttrName: "email",
+        Render: (props?: React.ComponentProps<typeof Input>) => {
+          return (
+            <Input
+              id="formInputText3"
+              type="email"
+              autoComplete="email"
+              placeholder="j.dupont@example.com"
+              value={props?.value === null ? "" : props?.value}
+              onChange={props?.onChange || (() => {})}
+              data-entity-attr-name="email"
+              {...props}
+            />
+          );
+        },
+      },
+    },
+  },
+  formInputText4: {
+    label: {
+      component: {
+        Render: ({
+          props,
+          translation,
+        }: {
+          props?: React.ComponentProps<typeof Label>;
+          translation?: (key: string) => string;
+        }) => {
+          return (
+            <Label {...props}>
+              {translation
+                ? translation("itemAttrPasswordLabel")
+                : "itemAttrInputText4Label"}
+            </Label>
+          );
+        },
+      },
+    },
+    input: {
+      type: "text",
+      component: {
+        dataEntityAttrName: "password",
+        Render: (props?: React.ComponentProps<typeof Input>) => {
+          return (
+            <Input
+              id="formInputText4"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={props?.value === null ? "" : props?.value}
+              onChange={props?.onChange || (() => {})}
+              data-entity-attr-name="password"
+              {...props}
+            />
+          );
+        },
+      },
+    },
+  },
+  formInputText5: {
+    label: {
+      component: {
+        Render: ({
+          props,
+          translation,
+        }: {
+          props?: React.ComponentProps<typeof Label>;
+          translation?: (key: string) => string;
+        }) => {
+          return (
+            <Label {...props}>
+              {translation
+                ? translation("itemAttrPhoneLabel")
+                : "itemAttrInputText5Label"}
+            </Label>
+          );
+        },
+      },
+    },
+    input: {
+      type: "text",
+      component: {
+        dataEntityAttrName: "phone",
+        Render: (props?: React.ComponentProps<typeof Input>) => {
+          return (
+            <Input
+              id="formInputText5"
+              type="text"
+              autoComplete="tel"
+              placeholder="0612345678"
+              value={props?.value === null ? "" : props?.value}
+              onChange={props?.onChange || (() => {})}
+              data-entity-attr-name="phone"
+              {...props}
+            />
+          );
+        },
+      },
+    },
+  },
+  formInputText6: {
+    label: {
+      component: {
+        Render: ({
+          props,
+          translation,
+        }: {
+          props?: React.ComponentProps<typeof Label>;
+          translation?: (key: string) => string;
+        }) => {
+          return (
+            <Label {...props}>
+              {translation
+                ? translation("itemStatusLabel")
+                : "itemAttrInputText6Label"}
+            </Label>
+          );
+        },
+      },
+    },
+    input: {
+      type: "text",
+      component: {
+        dataEntityAttrName: "status",
+        Render: (props?: React.ComponentProps<typeof Input>) => {
+          return (
+            <Input
+              id="formInputText6"
+              type="text"
+              autoComplete="status"
+              placeholder={Object.values(StatusEnum).join(", ")}
+              value={props?.value === null ? "" : props?.value}
+              onChange={props?.onChange || (() => {})}
+              data-entity-attr-name="status"
+              {...props}
+            />
+          );
+        },
+      },
+    },
+  },
 };
 
-const newClientInitialState: Omit<Client, 'id'> = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    status: 'Actif',
-};
+function ElementsPage() {
+  const translation = useTranslations("usersPage");
 
-function ClientsPage() {
-    const [clients, setClients] = useState<Client[]>(initialClients);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingClient, setEditingClient] = useState<Client | null>(null);
-    const [formData, setFormData] = useState<Omit<Client, 'id'>>(newClientInitialState);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+  const [elements, setElements] = useState<IEntity[]>([] as IEntity[]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<IEntity | null>(null);
+  const [formData, setFormData] = useState<IEntity>(newItemInitialState);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<IEntity | null>(null);
 
-    useEffect(() => {
-        if (!isFormOpen) {
-            setEditingClient(null);
-            setFormData(newClientInitialState);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchElements = async () => {
+      const filterEntitiesPayloadDto: FilterEntitiesPayloadDto = {
+        attributes: {},
+        // perPage?: string;
+        // offset?: string;
+        // page?: string;
+        // sortField?: string;
+        // sortOrder?: string;
+        // wildcard?: string;
+        // filterPayload: Record<string, string | undefined>;
+        pagination: {
+          perPage: itemsPerPage.toString(),
+          // offset: "0",
+          page: currentPage.toString(),
+          // sortField: "_id",
+          sortOrder: "asc",
+          // sortField: "",
+        },
+        wildcard: "true",
+      };
+      const response = await filterEntities(
+        filterEntitiesPayloadDto,
+        //   {
+        //   perPage: itemsPerPage.toString(),
+        //   // offset: "0",
+        //   page: currentPage.toString(),
+        //   // sortField: "_id",
+        //   sortOrder: "asc",
+        //   wildcard: "true",
+        //   filterPayload: {
+        //     //   // TODO: fix filter attributes
+        //   },
+        // }
+      );
+      const data = await response.json();
+      console.log("response data", data);
+
+      if (data?.users) {
+        setElements(data.users);
+      }
+      if (data?.pagination?.totalPages) {
+        setTotalPages(data.pagination.totalPages);
+      }
+    };
+    fetchElements();
+  }, [currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    if (!isFormOpen) {
+      setEditingItem(null);
+      setFormData(newItemInitialState);
+    }
+  }, [isFormOpen]);
+
+  const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const { entityAttrName } = e.target.dataset;
+    setFormData((prev) => ({
+      ...prev,
+      ...(entityAttrName ? { [entityAttrName]: value } : {}),
+    }));
+  };
+
+  const handleAddNewClick = () => {
+    setEditingItem(null);
+    setFormData(newItemInitialState);
+    setIsFormOpen(true);
+  };
+
+  const handleEditClick = (item: IEntity) => {
+    setEditingItem(item);
+    setFormData(item);
+    setIsFormOpen(true);
+  };
+
+  const handleSaveEntity = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const formattedFormData = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => {
+        if (key === "password" || key === "_id") {
+          return [key, value];
         }
-    }, [isFormOpen]);
-    
-    const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
+        return [key, typeof value === "string" ? value.toLowerCase() : value];
+      }),
+    );
+
+    if (editingItem) {
+      if (!editingItem._id) {
+        return;
+      }
+
+      const updatedEntityData = await updateItem(formattedFormData);
+
+      const { message } = updatedEntityData;
+      console.log("updateItem data", updatedEntityData);
+
+      if (!updatedEntityData?._id) {
+        toast({
+          title: message || "Error while updating item",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (message) {
+        toast({
+          title: message,
+          variant: "default",
+        });
+      }
+
+      setElements(
+        elements.map((entityItem) =>
+          entityItem._id === editingItem._id ? updatedEntityData : entityItem,
+        ),
+      );
+      setIsFormOpen(false);
+      return;
+    }
+
+    const createdEntityData = await signup(formattedFormData);
+    const { message } = createdEntityData;
+    console.log("signup data", createdEntityData);
+
+    if (!createdEntityData?._id) {
+      toast({
+        title: message || "Error while creating",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newItem: IEntity = {
+      _id: createdEntityData._id,
+      ...createdEntityData,
     };
 
-    const handleFormSelectChange = (id: 'status', value: string) => {
-        setFormData(prev => ({ ...prev, [id]: value as Client['status'] }));
-    };
-    
-    const handleAddNewClick = () => {
-        setEditingClient(null);
-        setFormData(newClientInitialState);
-        setIsFormOpen(true);
-    };
+    toast({
+      title: message || "created successfully",
+      variant: "default",
+    });
 
-    const handleEditClick = (client: Client) => {
-        setEditingClient(client);
-        setFormData(client);
-        setIsFormOpen(true);
-    };
+    setElements((prev) => [...prev, newItem]);
 
-    const handleSaveClient = (event: React.FormEvent) => {
-        event.preventDefault();
-        if (editingClient) {
-            setClients(clients.map(c => c.id === editingClient.id ? { ...formData, id: c.id } : c));
-        } else {
-            const newClient: Client = {
-                id: `client-${Date.now()}`,
-                ...formData
-            };
-            setClients(prev => [...prev, newClient]);
-        }
-        setIsFormOpen(false);
-    };
+    setIsFormOpen(false);
+  };
 
-    const handleDeleteClick = (client: Client) => {
-        setClientToDelete(client);
-        setIsDeleteDialogOpen(true);
-    };
+  const handleDeleteClick = (item: IEntity) => {
+    setItemToDelete(item);
+    setIsDeleteDialogOpen(true);
+  };
 
-    const handleConfirmDelete = () => {
-        if (clientToDelete) {
-            setClients(clients.filter(c => c.id !== clientToDelete.id));
-        }
-        setIsDeleteDialogOpen(false);
-        setClientToDelete(null);
-    };
+  const handleConfirmDelete = async () => {
+    console.log("itemToDelete-> itemToDelete", itemToDelete);
+
+    if (!itemToDelete?._id) {
+      return;
+    }
+    const archivedAt = new Date().toISOString();
+
+    const updatedEntityData = await updateItem({
+      _id: itemToDelete._id,
+      archivedAt,
+    });
+    const { message } = updatedEntityData;
+    console.log("updateItem data", updatedEntityData);
+
+    if (!updatedEntityData?._id) {
+      toast({
+        title: message || "Error while updating item",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (message) {
+      toast({
+        title: message,
+        variant: "default",
+      });
+    }
+
+    // console.log("delete response data", data);
+
+    // const message = "Item deletion is not possible, it will be archived later";
+
+    // toast({
+    //   title: "deleted successfully",
+    //   variant: "default",
+    // });
+
+    setElements(elements.filter((c) => c._id !== itemToDelete._id));
+
+    setIsDeleteDialogOpen(false);
+    setItemToDelete(null);
+  };
 
   return (
     <SidebarProvider>
@@ -154,138 +548,253 @@ function ClientsPage() {
       <SidebarInset>
         <Header />
         <main className="flex-1 space-y-8 p-4 sm:p-6 lg:p-8">
-            <div className="flex items-center justify-between space-y-2">
-              <div>
-                <h1 className="text-3xl font-headline font-bold tracking-tight">Clients</h1>
-                <p className="text-muted-foreground">Gérez votre base de clients.</p>
-              </div>
-              <Button onClick={handleAddNewClick}><Plus className='mr-2 h-4 w-4' />Ajouter un client</Button>
+          <div className="flex items-center justify-between space-y-2">
+            <div>
+              <h1 className="text-3xl font-headline font-bold tracking-tight">
+                {translation("pageTitle")}
+              </h1>
+              <p className="text-muted-foreground">
+                {translation("pageSubtitle")}
+              </p>
             </div>
+            <Button onClick={handleAddNewClick}>
+              <Plus className="mr-2 h-4 w-4" />
+              {translation("addItemButton")}
+            </Button>
+          </div>
 
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-              <DialogContent className="sm:max-w-xl">
-                <DialogHeader>
-                  <DialogTitle>{editingClient ? 'Modifier le client' : 'Ajouter un nouveau client'}</DialogTitle>
-                  <DialogDescription>
-                    {editingClient ? 'Mettez à jour les informations du client.' : 'Remplissez les informations ci-dessous.'}
-                  </DialogDescription>
-                </DialogHeader>
-                 <form onSubmit={handleSaveClient}>
-                    <div className="grid grid-cols-2 gap-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="firstName">Prénom</Label>
-                            <Input id="firstName" placeholder="Jean" value={formData.firstName} onChange={handleFormInputChange} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="lastName">Nom</Label>
-                            <Input id="lastName" placeholder="Dupont" value={formData.lastName} onChange={handleFormInputChange} />
-                        </div>
-                         <div className="col-span-2 space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="j.dupont@email.com" value={formData.email} onChange={handleFormInputChange} />
-                        </div>
-                         <div className="col-span-2 space-y-2">
-                            <Label htmlFor="phone">Téléphone</Label>
-                            <Input id="phone" placeholder="0612345678" value={formData.phone} onChange={handleFormInputChange} />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="status">Statut</Label>
-                            <Select value={formData.status} onValueChange={(value) => handleFormSelectChange('status', value)}>
-                                <SelectTrigger id="status">
-                                <SelectValue placeholder="Sélectionnez un statut" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                {statusOptions.map(status => (
-                                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogContent className="sm:max-w-xl">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingItem
+                    ? translation("editItemDialogTitle")
+                    : translation("addItemDialogTitle")}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingItem
+                    ? translation("editItemDialogSubtitle")
+                    : translation("addItemDialogSubtitle")}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSaveEntity}>
+                <div className="grid grid-cols-2 gap-4 py-4">
+                  <div className="space-y-2">
+                    {entityForms.formInputText1.label.component.Render({
+                      translation,
+                    })}
+
+                    {entityForms.formInputText1.input.component.Render({
+                      value:
+                        formData[
+                          entityForms.formInputText1.input.component
+                            .dataEntityAttrName as keyof IEntity
+                        ],
+                      onChange: handleFormInputChange,
+                    })}
+                  </div>
+                  <div className="space-y-2">
+                    {entityForms.formInputText2.label.component.Render({
+                      translation,
+                    })}
+
+                    {entityForms.formInputText2.input.component.Render({
+                      value:
+                        formData[
+                          entityForms.formInputText2.input.component
+                            .dataEntityAttrName as keyof IEntity
+                        ],
+                      onChange: handleFormInputChange,
+                    })}
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    {entityForms.formInputText3.label.component.Render({
+                      translation,
+                    })}
+
+                    {entityForms.formInputText3.input.component.Render({
+                      value:
+                        formData[
+                          entityForms.formInputText3.input.component
+                            .dataEntityAttrName as keyof IEntity
+                        ],
+                      onChange: handleFormInputChange,
+                    })}
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    {entityForms.formInputText4.label.component.Render({
+                      translation,
+                    })}
+
+                    {entityForms.formInputText4.input.component.Render({
+                      value:
+                        formData[
+                          entityForms.formInputText4.input.component
+                            .dataEntityAttrName as keyof IEntity
+                        ],
+                      onChange: handleFormInputChange,
+                    })}
+                  </div>
+
+                  <div className="col-span-2 space-y-2">
+                    {entityForms.formInputText5.label.component.Render({
+                      translation,
+                    })}
+
+                    {entityForms.formInputText5.input.component.Render({
+                      value:
+                        formData[
+                          entityForms.formInputText5.input.component
+                            .dataEntityAttrName as keyof IEntity
+                        ],
+                      onChange: handleFormInputChange,
+                    })}
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    {entityForms.formInputText6.label.component.Render({
+                      translation,
+                    })}
+
+                    {entityForms.formInputText6.input.component.Render({
+                      value:
+                        formData[
+                          entityForms.formInputText6.input.component
+                            .dataEntityAttrName as keyof IEntity
+                        ],
+                      onChange: handleFormInputChange,
+                    })}
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsFormOpen(false)}
+                  >
+                    {translation("cancelText")}
+                  </Button>
+                  <Button type="submit">{translation("saveText")}</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <AlertDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {translation("alertDeleteItemTitle")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {translation("alertDeleteItemDescription")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+                  {translation("cancelText")}
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete}>
+                  {translation("alertDeleteItemConfirm")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{translation("itemsTabeTitle")}</CardTitle>
+              <CardDescription>
+                {translation("itemsTabeSubtitle")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="w-full">
+                  <input
+                    id="formInputText7Search1"
+                    type="text"
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+                <div className="w-full p-2">
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => setItemsPerPage(Number(value))}
+                  >
+                    <SelectTrigger id="itemsPerPageSelectInputId">
+                      <SelectValue placeholder="Items per page" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <TableComponent<IEntity>
+                  columns={[...Object.keys(newItemInitialState)]}
+                  data={elements}
+                  props={[
+                    ...(Object.keys(newItemInitialState) as (keyof IEntity)[]),
+                  ]}
+                  sortableProps={
+                    // all entity props dynamically
+                    // TODO: fix sorting
+                    [
+                      "_id",
+                      ...(Object.keys(
+                        newItemInitialState,
+                      ) as (keyof IEntity)[]),
+                    ]
+                  }
+                  searchValue={searchTerm}
+                  enablePagination
+                  page={currentPage}
+                  setPage={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                  actions
+                  actionTexts={["Edit", "Delete"]}
+                  totalPages={totalPages}
+                  actionFunctions={[
+                    (item) => handleEditClick(item),
+                    (item) => handleDeleteClick(item),
+                  ]}
+                  customClassNames={{
+                    actionDropdown: {
+                      // container: "bg-gray-100 dark:bg-gray-800",
+                      menu: "bg-gray-100 dark:bg-gray-800",
+                      // item: "hover:bg-gray-200 dark:hover:bg-gray-700",
+                      // overlay: "bg-gray-100/80 dark:bg-gray-800/80",
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Debug: item details */}
+              {/* {elements.map((entityItem) => (
+                <div key={entityItem._id}>
+                  {Object.keys(entityItem).map((key) => (
+                    <div key={key}>
+                      {key}: {entityItem[key as keyof IEntity]}
                     </div>
-                    <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Annuler</Button>
-                    <Button type="submit">Sauvegarder</Button>
-                    </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                    <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Cette action est irréversible. Le client sera définitivement supprimé.
-                    </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirmDelete}>Supprimer</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Liste des clients</CardTitle>
-                    <CardDescription>Consultez et gérez tous les clients enregistrés.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                            <TableHead>Nom</TableHead>
-                            <TableHead>Contact</TableHead>
-                            <TableHead>Statut</TableHead>
-                            <TableHead>
-                                <span className="sr-only">Actions</span>
-                            </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {clients.map((client) => (
-                            <TableRow key={client.id}>
-                                <TableCell>
-                                    <div className="font-medium">{client.firstName} {client.lastName}</div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="text-sm text-muted-foreground">{client.email}</div>
-                                    <div className="text-sm text-muted-foreground">{client.phone}</div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={getStatusVariant(client.status)}>{client.status}</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                            <span className="sr-only">Toggle menu</span>
-                                        </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onClick={() => handleEditClick(client)}>Modifier</DropdownMenuItem>
-                                        <DropdownMenuItem>Voir les véhicules</DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                                            onClick={() => handleDeleteClick(client)}
-                                        >
-                                            Supprimer
-                                        </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-           </Card>
+                  ))}
+                </div>
+              ))} */}
+            </CardContent>
+          </Card>
         </main>
       </SidebarInset>
     </SidebarProvider>
   );
 }
 
-export default withAuth(ClientsPage);
+export default withAuth(ElementsPage);

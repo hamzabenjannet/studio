@@ -1,4 +1,8 @@
 {
+  "common": {
+    "actions": "Actions",
+    "notifications": "Notifications"
+  },
   "Header": {
     "searchPlaceholder": "Rechercher...",
     "notifications": "Notifications",
@@ -11,5 +15,39 @@
   },
   "LanguageSwitcher": {
     "label": "Langue"
+  },
+  "usersPage": {
+    "pageTitle": "Clients",
+    "pageSubtitle": "Gérez votre base de clients.",
+    "addItemButton": "Ajouter un client",
+    "itemsTabeTitle": "Liste des clients",
+    "itemsTabeSubtitle": "Consultez et gérez tous les clients enregistrés.",
+    "itemsTabeColumnNameAttrName": "Nom",
+    "itemsTabeColumnNameAttrEmail": "Email",
+    "itemsTabeColumnNameAttrPhone": "Numéro de téléphone",
+    "itemsTabeColumnNameAttrAddress": "Adresse",
+    "itemsTabeColumnNameAttrStatus": "Statut",
+    "itemsTabeColumnNameAttrActions": "Actions",
+    "itemsTabeColumnNameAttrActionsDropdownButtonEdit": "Modifier",
+    "itemsTabeColumnNameAttrActionsDropdownButtonDelete": "Supprimer",
+    "itemsTabeColumnNameAttrActionsDropdownButtonViewCars": "Voir les véhicules",
+    "alertDeleteItem": "Êtes-vous sûr de vouloir supprimer?",
+    "alertDeleteItemTitle": "Suppression de client",
+    "alertDeleteItemDescription": " Cette action est irréversible. Le client sera définitivement supprimé.",
+    "alertDeleteItemConfirm": "Supprimer",
+    "cancelText": "Annuler",
+    "saveText": "Sauvegarder",
+    "addItemDialogTitle": "Ajouter un nouveau client",
+    "addItemDialogSubtitle": "Remplissez les informations ci-dessous.",
+    "editItemDialogTitle": "Modifier le client",
+    "editItemDialogSubtitle": "Mettez à jour les informations du client.",
+    "itemAttrInputText1Label": "Nom",
+    "itemAttrInputText2Label": "Prénom",
+    "itemAttrEmailLabel": "Email",
+    "itemAttrPasswordLabel": "Mot de passe",
+    "itemAttrPhoneLabel": "Numéro de téléphone",
+    "itemAttrAddressLabel": "Adresse",
+    "itemStatusLabel": "Statut",
+    "itemSelectStatusPlaceholder": "Sélectionnez le statut"
   }
 }

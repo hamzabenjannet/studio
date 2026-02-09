@@ -35,16 +35,16 @@ export function Header() {
       <SidebarTrigger className="md:hidden" />
       <div className="flex w-full items-center gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          {/* <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Rechercher..."
+            placeholder={t("searchPlaceholder")}
             className="w-full appearance-none bg-card pl-8 md:w-2/3 lg:w-1/3"
-          />
+          /> */}
         </div>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Bell className="h-5 w-5" />
-          <span className="sr-only">Notifications</span>
+          <span className="sr-only">{t("notifications")}</span>
         </Button>
         {user ? (
           <DropdownMenu>
@@ -56,7 +56,7 @@ export function Header() {
                     alt={userAvatar.description}
                     data-ai-hint={userAvatar.imageHint}
                   />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarFallback>{user.givenName}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -72,16 +72,18 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/profile">Profil</Link>
+                <Link href="/profile">{t("profile")}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/billing">Facturation</Link>
+                <Link href="/billing">{t("billing")}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/settings">Paramètres</Link>
+                <Link href="/settings">{t("settings")}</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout}>Déconnexion</DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
+                {t("logout")}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
