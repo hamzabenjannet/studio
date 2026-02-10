@@ -84,11 +84,11 @@ interface IWorkOrder {
   estimatedDuration?: string | undefined;
   notes?: string | undefined;
   vehicle?: Vehicle | undefined;
-  vehicleString?: any | undefined;
+  vehicleString?: string | undefined;
   labors?: User[] | undefined;
-  laborsString?: any | undefined;
+  laborsString?: string | undefined;
   materials?: Stock[] | undefined;
-  materialsString?: any | undefined;
+  materialsString?: string | undefined;
   createdAt?: string | undefined;
 }
 
@@ -99,12 +99,71 @@ export class WorkOrderEntity implements IWorkOrder {
   estimatedDuration?: string | undefined = undefined;
   notes?: string | undefined = undefined;
   vehicle?: Vehicle | undefined = undefined;
-  vehicleString?: any | undefined = undefined;
+  vehicleString?: string | undefined = undefined;
   labors?: User[] | undefined = [];
-  laborsString?: any | undefined = undefined;
+  laborsString?: string | undefined = undefined;
   materials?: Stock[] | undefined = [];
-  materialsString?: any | undefined = undefined;
+  materialsString?: string | undefined = undefined;
 }
+
+const formatEntityRecursive = (entity: any, depth: number = 0): string => {
+  if (entity === null || entity === undefined) return "";
+  if (typeof entity !== "object") return String(entity);
+  if (entity instanceof Date) return entity.toLocaleString();
+
+  const indent = " ".repeat(depth * 2);
+
+  if (Array.isArray(entity)) {
+    if (entity.length === 0) return "[]";
+    return (
+      entity
+        .map((item, index) => {
+          const val = formatEntityRecursive(item, depth + 1);
+          return `${indent}- [${index}]: item._id:${item?._id || "N/A"} \n${val}`;
+        })
+        // .filter((item) => !item)
+        .join("\n --- \n")
+    );
+  }
+
+  const entries = Object.entries(entity).filter(
+    ([key]) =>
+      ![
+        "_id",
+        "password",
+        "passwordSalt",
+        "createdAt",
+        "updatedAt",
+        "__v",
+        "id",
+      ].includes(key),
+  );
+
+  if (entries.length === 0) return String(entity);
+
+  return entries
+    .map(([key, value]) => {
+      if (!value) {
+        return "";
+      }
+
+      let valueStr = "";
+
+      if (
+        typeof value === "object" &&
+        value !== null &&
+        !(value instanceof Date)
+      ) {
+        valueStr = `^__ ${formatEntityRecursive(value, depth + 1)}`;
+      } else {
+        valueStr = String(
+          value instanceof Date ? value.toLocaleString() : value,
+        );
+      }
+      return `-- key: ${key} | value: ${valueStr} \n`;
+    })
+    .join("");
+};
 
 const newItemInitialState: IWorkOrder = new WorkOrderEntity();
 
@@ -386,44 +445,17 @@ function WorkOrdersPage() {
                   const { vehicle, labors, materials } = item;
                   return {
                     ...item,
-                    vehicleString: vehicle ? (
-                      <div className="whitespace-nowrap">
-                        {vehicle.make || ""} {vehicle.model || ""} (
-                        {vehicle.plateNumber || ""})
-                      </div>
-                    ) : (
-                      "-"
-                    ),
+                    vehicleString: vehicle
+                      ? formatEntityRecursive(vehicle)
+                      : "-",
                     laborsString:
-                      labors && labors.length > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          {labors.map((l, index) => (
-                            <div
-                              key={l._id || index}
-                              className="whitespace-nowrap"
-                            >
-                              {l.givenName || ""} {l.familyName || ""}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        "-"
-                      ),
+                      labors && labors.length > 0
+                        ? formatEntityRecursive(labors)
+                        : "-",
                     materialsString:
-                      materials && materials.length > 0 ? (
-                        <div className="flex flex-col gap-1">
-                          {materials.map((m, index) => (
-                            <div
-                              key={m._id || index}
-                              className="whitespace-nowrap"
-                            >
-                              {m.name || ""} - {m.quantity || 0}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        "-"
-                      ),
+                      materials && materials.length > 0
+                        ? formatEntityRecursive(materials)
+                        : "-",
                   };
                 })}
                 handleEditClick={handleEditClick}

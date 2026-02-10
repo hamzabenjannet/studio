@@ -130,7 +130,7 @@ function TableSection<IEntity extends Record<string, any>>({
   columns?: string[];
 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 [&_td]:whitespace-pre-wrap [&_td]:min-w-[200px] [&_td]:text-xs">
       <TableComponent<IEntity>
         columns={
           columns.length > 0 ? columns : [...Object.keys(newItemInitialState)]
