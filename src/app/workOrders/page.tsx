@@ -84,8 +84,11 @@ interface IWorkOrder {
   estimatedDuration?: string | undefined;
   notes?: string | undefined;
   vehicle?: Vehicle | undefined;
+  vehicleString?: any | undefined;
   labors?: User[] | undefined;
+  laborsString?: any | undefined;
   materials?: Stock[] | undefined;
+  materialsString?: any | undefined;
   createdAt?: string | undefined;
 }
 
@@ -96,13 +99,16 @@ export class WorkOrderEntity implements IWorkOrder {
   estimatedDuration?: string | undefined = undefined;
   notes?: string | undefined = undefined;
   vehicle?: Vehicle | undefined = undefined;
+  vehicleString?: any | undefined = undefined;
   labors?: User[] | undefined = [];
+  laborsString?: any | undefined = undefined;
   materials?: Stock[] | undefined = [];
+  materialsString?: any | undefined = undefined;
 }
 
 const newItemInitialState: IWorkOrder = new WorkOrderEntity();
 
-function RepairsPage() {
+function WorkOrdersPage() {
   const [elements, setElements] = useState<IWorkOrder[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -376,11 +382,56 @@ function RepairsPage() {
             </CardHeader>
             <CardContent>
               <TableSection
-                elements={elements}
+                elements={elements.map((item) => {
+                  const { vehicle, labors, materials } = item;
+                  return {
+                    ...item,
+                    vehicleString: vehicle ? (
+                      <div className="whitespace-nowrap">
+                        {vehicle.make || ""} {vehicle.model || ""} (
+                        {vehicle.plateNumber || ""})
+                      </div>
+                    ) : (
+                      "-"
+                    ),
+                    laborsString:
+                      labors && labors.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {labors.map((l, index) => (
+                            <div
+                              key={l._id || index}
+                              className="whitespace-nowrap"
+                            >
+                              {l.givenName || ""} {l.familyName || ""}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        "-"
+                      ),
+                    materialsString:
+                      materials && materials.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {materials.map((m, index) => (
+                            <div
+                              key={m._id || index}
+                              className="whitespace-nowrap"
+                            >
+                              {m.name || ""} - {m.quantity || 0}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        "-"
+                      ),
+                  };
+                })}
                 handleEditClick={handleEditClick}
                 handleDeleteClick={handleDeleteClick}
                 newItemInitialState={newItemInitialState}
-                columns={Object.keys(newItemInitialState)}
+                columns={Object.keys(newItemInitialState).filter(
+                  (key) => !["vehicle", "labors", "materials"].includes(key),
+                )}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 itemsPerPage={itemsPerPage}
@@ -572,4 +623,4 @@ function RepairsPage() {
   );
 }
 
-export default withAuth(RepairsPage);
+export default withAuth(WorkOrdersPage);

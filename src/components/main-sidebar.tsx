@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarGroupLabel
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
@@ -29,8 +29,8 @@ const logo = {
   id: "app-logo",
   description: "Application logo placeholder",
   imageUrl: "https://picsum.photos/seed/logo/40/40",
-  imageHint: "abstract gear"
-}
+  imageHint: "abstract gear",
+};
 
 export function MainSidebar() {
   const pathname = usePathname();
@@ -40,19 +40,30 @@ export function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-3">
-            <Image src={logo.imageUrl} alt={logo.description} data-ai-hint={logo.imageHint} width={40} height={40} className="rounded-lg" />
-            <div className="flex flex-col">
-              <h2 className="text-lg font-headline font-semibold text-sidebar-foreground">
-                AutoAssistant Pro
-              </h2>
-            </div>
+          <Image
+            src={logo.imageUrl}
+            alt={logo.description}
+            data-ai-hint={logo.imageHint}
+            width={40}
+            height={40}
+            className="rounded-lg"
+          />
+          <div className="flex flex-col">
+            <h2 className="text-lg font-headline font-semibold text-sidebar-foreground">
+              AutoAssistant Pro
+            </h2>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/")} tooltip="Dashboard">
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/")}
+              tooltip="Dashboard"
+            >
               <Link href="/">
                 <LayoutDashboard />
                 <span>Dashboard</span>
@@ -60,7 +71,11 @@ export function MainSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/tasks")} tooltip="Tâches">
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/tasks")}
+              tooltip="Tâches"
+            >
               <Link href="/tasks">
                 <ListTodo />
                 <span>Tâches</span>
@@ -68,23 +83,35 @@ export function MainSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/repairs")} tooltip="Ordres de Réparation">
-              <Link href="/repairs">
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/workOrders")}
+              tooltip="Ordres de Réparation"
+            >
+              <Link href="/workOrders">
                 <Wrench />
                 <span>Ordres de Réparation</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/clients")} tooltip="Clients">
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/clients")}
+              tooltip="Clients"
+            >
               <Link href="/clients">
                 <Users />
                 <span>Clients</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/vehicles")} tooltip="Véhicules">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/vehicles")}
+              tooltip="Véhicules"
+            >
               <Link href="/vehicles">
                 <Car />
                 <span>Véhicules</span>
@@ -92,7 +119,11 @@ export function MainSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/stock")} tooltip="Stock">
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/stock")}
+              tooltip="Stock"
+            >
               <Link href="/stock">
                 <Box />
                 <span>Stock</span>
@@ -100,7 +131,11 @@ export function MainSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/billing")} tooltip="Facturation">
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/billing")}
+              tooltip="Facturation"
+            >
               <Link href="/billing">
                 <Receipt />
                 <span>Facturation</span>
@@ -111,22 +146,30 @@ export function MainSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/entities")} tooltip="Entities">
-                <Link href="/entities">
-                  <Shapes />
-                  <span>Entities</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Paramètres">
-                <Link href="/settings">
-                  <Settings />
-                  <span>Paramètres</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/entities")}
+              tooltip="Entities"
+            >
+              <Link href="/entities">
+                <Shapes />
+                <span>Entities</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/settings")}
+              tooltip="Paramètres"
+            >
+              <Link href="/settings">
+                <Settings />
+                <span>Paramètres</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
