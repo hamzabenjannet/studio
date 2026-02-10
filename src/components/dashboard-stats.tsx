@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wrench, ListTodo, Box, Users } from "lucide-react";
@@ -11,22 +11,22 @@ const stats = [
     description: "+2 depuis hier",
   },
   {
-    title: "Tâches à faire aujourd'hui",
+    title: "Tasks to do today",
     value: "5",
     icon: ListTodo,
-    description: "1 en retard",
+    description: "1 late",
   },
   {
-    title: "Pièces en stock faible",
+    title: "Low stock pieces",
     value: "3",
     icon: Box,
-    description: "Commander bientôt",
+    description: "Order soon",
   },
   {
-    title: "Nouveaux Clients ce mois-ci",
+    title: "New users this month",
     value: "8",
     icon: Users,
-    description: "+15% vs mois dernier",
+    description: "+15% vs last month",
   },
 ];
 

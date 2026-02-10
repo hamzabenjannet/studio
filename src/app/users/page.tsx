@@ -82,246 +82,288 @@ const newItemInitialState: IEntity = Object.fromEntries(
 ) as unknown as IEntity;
 
 const entityForms = {
-  formInputText1: {
-    label: {
-      component: {
-        Render: ({
-          props,
-          translation,
-        }: {
-          props?: React.ComponentProps<typeof Label>;
-          translation?: (key: string) => string;
-        }) => {
-          return (
-            <Label {...props}>
-              {translation
-                ? translation("itemAttrInputText1Label")
-                : "itemAttrInputText1Label"}
-            </Label>
-          );
+  createNewItem: {
+    givenName: {
+      label: {
+        component: {
+          Render: ({
+            props,
+            translation,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+            translation?: (key: string) => string;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("itemAttrInputText1Label")
+                  : "itemAttrInputText1Label"}
+              </Label>
+            );
+          },
+        },
+      },
+      input: {
+        type: "text",
+        component: {
+          dataEntityAttrName: "givenName",
+          Render: (props?: React.ComponentProps<typeof Input>) => {
+            return (
+              <Input
+                id="givenName"
+                type="text"
+                placeholder="Jean"
+                value={props?.value === null ? "" : props?.value}
+                onChange={props?.onChange || (() => {})}
+                data-entity-attr-name="givenName"
+                {...props}
+              />
+            );
+          },
         },
       },
     },
-    input: {
-      type: "text",
-      component: {
-        dataEntityAttrName: "givenName",
-        Render: (props?: React.ComponentProps<typeof Input>) => {
-          return (
-            <Input
-              id="formInputText1"
-              type="text"
-              placeholder="Jean"
-              value={props?.value === null ? "" : props?.value}
-              onChange={props?.onChange || (() => {})}
-              data-entity-attr-name="givenName"
-              {...props}
-            />
-          );
+    // formInputText1: {
+    //   label: {
+    //     component: {
+    //       Render: ({
+    //         props,
+    //         translation,
+    //       }: {
+    //         props?: React.ComponentProps<typeof Label>;
+    //         translation?: (key: string) => string;
+    //       }) => {
+    //         return (
+    //           <Label {...props}>
+    //             {translation
+    //               ? translation("itemAttrInputText1Label")
+    //               : "itemAttrInputText1Label"}
+    //           </Label>
+    //         );
+    //       },
+    //     },
+    //   },
+    //   input: {
+    //     type: "text",
+    //     component: {
+    //       dataEntityAttrName: "givenName",
+    //       Render: (props?: React.ComponentProps<typeof Input>) => {
+    //         return (
+    //           <Input
+    //             id="formInputText1"
+    //             type="text"
+    //             placeholder="Jean"
+    //             value={props?.value === null ? "" : props?.value}
+    //             onChange={props?.onChange || (() => {})}
+    //             data-entity-attr-name="givenName"
+    //             {...props}
+    //           />
+    //         );
+    //       },
+    //     },
+    //   },
+    // },
+    familyName: {
+      label: {
+        component: {
+          Render: ({
+            props,
+            translation,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+            translation?: (key: string) => string;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("itemAttrInputText2Label")
+                  : "itemAttrInputText2Label"}
+              </Label>
+            );
+          },
+        },
+      },
+      input: {
+        type: "text",
+        component: {
+          dataEntityAttrName: "familyName",
+          Render: (props?: React.ComponentProps<typeof Input>) => {
+            return (
+              <Input
+                id="familyName"
+                type="text"
+                placeholder="Dupont"
+                value={props?.value === null ? "" : props?.value}
+                onChange={props?.onChange || (() => {})}
+                data-entity-attr-name="familyName"
+                {...props}
+              />
+            );
+          },
         },
       },
     },
-  },
-  formInputText2: {
-    label: {
-      component: {
-        Render: ({
-          props,
-          translation,
-        }: {
-          props?: React.ComponentProps<typeof Label>;
-          translation?: (key: string) => string;
-        }) => {
-          return (
-            <Label {...props}>
-              {translation
-                ? translation("itemAttrInputText2Label")
-                : "itemAttrInputText2Label"}
-            </Label>
-          );
+    email: {
+      label: {
+        component: {
+          Render: ({
+            props,
+            translation,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+            translation?: (key: string) => string;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("itemAttrEmailLabel")
+                  : "itemAttrInputText3Label"}
+              </Label>
+            );
+          },
+        },
+      },
+      input: {
+        type: "text",
+        component: {
+          dataEntityAttrName: "email",
+          Render: (props?: React.ComponentProps<typeof Input>) => {
+            return (
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="j.dupont@example.com"
+                value={props?.value === null ? "" : props?.value}
+                onChange={props?.onChange || (() => {})}
+                data-entity-attr-name="email"
+                {...props}
+              />
+            );
+          },
         },
       },
     },
-    input: {
-      type: "text",
-      component: {
-        dataEntityAttrName: "familyName",
-        Render: (props?: React.ComponentProps<typeof Input>) => {
-          return (
-            <Input
-              id="formInputText2"
-              type="text"
-              placeholder="Dupont"
-              value={props?.value === null ? "" : props?.value}
-              onChange={props?.onChange || (() => {})}
-              data-entity-attr-name="familyName"
-              {...props}
-            />
-          );
+    password: {
+      label: {
+        component: {
+          Render: ({
+            props,
+            translation,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+            translation?: (key: string) => string;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("itemAttrPasswordLabel")
+                  : "itemAttrInputText4Label"}
+              </Label>
+            );
+          },
+        },
+      },
+      input: {
+        type: "text",
+        component: {
+          dataEntityAttrName: "password",
+          Render: (props?: React.ComponentProps<typeof Input>) => {
+            return (
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                placeholder="••••••••"
+                value={props?.value === null ? "" : props?.value}
+                onChange={props?.onChange || (() => {})}
+                data-entity-attr-name="password"
+                {...props}
+              />
+            );
+          },
         },
       },
     },
-  },
-  formInputText3: {
-    label: {
-      component: {
-        Render: ({
-          props,
-          translation,
-        }: {
-          props?: React.ComponentProps<typeof Label>;
-          translation?: (key: string) => string;
-        }) => {
-          return (
-            <Label {...props}>
-              {translation
-                ? translation("itemAttrEmailLabel")
-                : "itemAttrInputText3Label"}
-            </Label>
-          );
+    phone: {
+      label: {
+        component: {
+          Render: ({
+            props,
+            translation,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+            translation?: (key: string) => string;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("itemAttrPhoneLabel")
+                  : "itemAttrInputText5Label"}
+              </Label>
+            );
+          },
+        },
+      },
+      input: {
+        type: "text",
+        component: {
+          dataEntityAttrName: "phone",
+          Render: (props?: React.ComponentProps<typeof Input>) => {
+            return (
+              <Input
+                id="phone"
+                type="text"
+                autoComplete="tel"
+                placeholder="0612345678"
+                value={props?.value === null ? "" : props?.value}
+                onChange={props?.onChange || (() => {})}
+                data-entity-attr-name="phone"
+                {...props}
+              />
+            );
+          },
         },
       },
     },
-    input: {
-      type: "text",
-      component: {
-        dataEntityAttrName: "email",
-        Render: (props?: React.ComponentProps<typeof Input>) => {
-          return (
-            <Input
-              id="formInputText3"
-              type="email"
-              autoComplete="email"
-              placeholder="j.dupont@example.com"
-              value={props?.value === null ? "" : props?.value}
-              onChange={props?.onChange || (() => {})}
-              data-entity-attr-name="email"
-              {...props}
-            />
-          );
+    status: {
+      label: {
+        component: {
+          Render: ({
+            props,
+            translation,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+            translation?: (key: string) => string;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("itemStatusLabel")
+                  : "itemAttrInputText6Label"}
+              </Label>
+            );
+          },
         },
       },
-    },
-  },
-  formInputText4: {
-    label: {
-      component: {
-        Render: ({
-          props,
-          translation,
-        }: {
-          props?: React.ComponentProps<typeof Label>;
-          translation?: (key: string) => string;
-        }) => {
-          return (
-            <Label {...props}>
-              {translation
-                ? translation("itemAttrPasswordLabel")
-                : "itemAttrInputText4Label"}
-            </Label>
-          );
-        },
-      },
-    },
-    input: {
-      type: "text",
-      component: {
-        dataEntityAttrName: "password",
-        Render: (props?: React.ComponentProps<typeof Input>) => {
-          return (
-            <Input
-              id="formInputText4"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              value={props?.value === null ? "" : props?.value}
-              onChange={props?.onChange || (() => {})}
-              data-entity-attr-name="password"
-              {...props}
-            />
-          );
-        },
-      },
-    },
-  },
-  formInputText5: {
-    label: {
-      component: {
-        Render: ({
-          props,
-          translation,
-        }: {
-          props?: React.ComponentProps<typeof Label>;
-          translation?: (key: string) => string;
-        }) => {
-          return (
-            <Label {...props}>
-              {translation
-                ? translation("itemAttrPhoneLabel")
-                : "itemAttrInputText5Label"}
-            </Label>
-          );
-        },
-      },
-    },
-    input: {
-      type: "text",
-      component: {
-        dataEntityAttrName: "phone",
-        Render: (props?: React.ComponentProps<typeof Input>) => {
-          return (
-            <Input
-              id="formInputText5"
-              type="text"
-              autoComplete="tel"
-              placeholder="0612345678"
-              value={props?.value === null ? "" : props?.value}
-              onChange={props?.onChange || (() => {})}
-              data-entity-attr-name="phone"
-              {...props}
-            />
-          );
-        },
-      },
-    },
-  },
-  formInputText6: {
-    label: {
-      component: {
-        Render: ({
-          props,
-          translation,
-        }: {
-          props?: React.ComponentProps<typeof Label>;
-          translation?: (key: string) => string;
-        }) => {
-          return (
-            <Label {...props}>
-              {translation
-                ? translation("itemStatusLabel")
-                : "itemAttrInputText6Label"}
-            </Label>
-          );
-        },
-      },
-    },
-    input: {
-      type: "text",
-      component: {
-        dataEntityAttrName: "status",
-        Render: (props?: React.ComponentProps<typeof Input>) => {
-          return (
-            <Input
-              id="formInputText6"
-              type="text"
-              autoComplete="status"
-              placeholder={Object.values(StatusEnum).join(", ")}
-              value={props?.value === null ? "" : props?.value}
-              onChange={props?.onChange || (() => {})}
-              data-entity-attr-name="status"
-              {...props}
-            />
-          );
+      input: {
+        type: "text",
+        component: {
+          dataEntityAttrName: "status",
+          Render: (props?: React.ComponentProps<typeof Input>) => {
+            return (
+              <Input
+                id="status"
+                type="text"
+                autoComplete="status"
+                placeholder={Object.values(StatusEnum).join(", ")}
+                value={props?.value === null ? "" : props?.value}
+                onChange={props?.onChange || (() => {})}
+                data-entity-attr-name="status"
+                {...props}
+              />
+            );
+          },
         },
       },
     },
@@ -343,30 +385,31 @@ function ElementsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    const fetchElements = async () => {
-      const filterEntitiesPayloadDto: FilterEntitiesPayloadDto = {
-        attributes: {},
-        pagination: {
-          perPage: itemsPerPage.toString(),
-          // offset: "0",
-          page: currentPage.toString(),
-          sortField: "_id",
-          sortOrder: "asc",
-        },
-        wildcard: "true",
-      };
-      const response = await filterEntities(filterEntitiesPayloadDto);
-      const data = await response.json();
-      console.log("response data", data);
-
-      if (data?.users) {
-        setElements(data.users);
-      }
-      if (data?.pagination?.totalPages) {
-        setTotalPages(data.pagination.totalPages);
-      }
+  const fetchElements = async () => {
+    const filterEntitiesPayloadDto: FilterEntitiesPayloadDto = {
+      attributes: {},
+      pagination: {
+        perPage: itemsPerPage.toString(),
+        // offset: "0",
+        page: currentPage.toString(),
+        sortField: "_id",
+        sortOrder: "desc",
+      },
+      wildcard: "true",
     };
+    const response = await filterEntities(filterEntitiesPayloadDto);
+    const data = await response.json();
+    console.log("response data", data);
+
+    if (data?.users) {
+      setElements(data.users);
+    }
+    if (data?.pagination?.totalPages) {
+      setTotalPages(data.pagination.totalPages);
+    }
+  };
+
+  useEffect(() => {
     fetchElements();
   }, [currentPage, itemsPerPage]);
 
@@ -477,19 +520,16 @@ function ElementsPage() {
   };
 
   const handleConfirmDelete = async () => {
-    console.log("itemToDelete-> itemToDelete", itemToDelete);
-
     if (!itemToDelete?._id) {
       return;
     }
-    const archivedAt = new Date().toISOString();
 
     const updatedEntityData = await updateItem({
       _id: itemToDelete._id,
-      archivedAt,
+      status: StatusEnum.ARCHIVED,
     });
     const { message } = updatedEntityData;
-    console.log("updateItem data", updatedEntityData);
+    console.debug("updatedEntityData", updatedEntityData);
 
     if (!updatedEntityData?._id) {
       toast({
@@ -505,7 +545,7 @@ function ElementsPage() {
         variant: "default",
       });
     }
-    setElements(elements.filter((c) => c._id !== itemToDelete._id));
+    await fetchElements();
 
     setIsDeleteDialogOpen(false);
     setItemToDelete(null);
@@ -549,56 +589,64 @@ function ElementsPage() {
               <form onSubmit={handleSaveEntity}>
                 <div className="grid grid-cols-2 gap-4 py-4">
                   <div className="space-y-2">
-                    {entityForms.formInputText1.label.component.Render({
-                      translation,
-                    })}
+                    {entityForms.createNewItem.givenName.label.component.Render(
+                      {
+                        translation,
+                      },
+                    )}
 
-                    {entityForms.formInputText1.input.component.Render({
-                      value:
-                        formData[
-                          entityForms.formInputText1.input.component
-                            .dataEntityAttrName as keyof IEntity
-                        ],
-                      onChange: handleFormInputChange,
-                    })}
+                    {entityForms.createNewItem.givenName.input.component.Render(
+                      {
+                        value:
+                          formData[
+                            entityForms.createNewItem.givenName.input.component
+                              .dataEntityAttrName as keyof IEntity
+                          ],
+                        onChange: handleFormInputChange,
+                      },
+                    )}
                   </div>
                   <div className="space-y-2">
-                    {entityForms.formInputText2.label.component.Render({
+                    {entityForms.createNewItem.familyName.label.component.Render(
+                      {
+                        translation,
+                      },
+                    )}
+
+                    {entityForms.createNewItem.familyName.input.component.Render(
+                      {
+                        value:
+                          formData[
+                            entityForms.createNewItem.familyName.input.component
+                              .dataEntityAttrName as keyof IEntity
+                          ],
+                        onChange: handleFormInputChange,
+                      },
+                    )}
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    {entityForms.createNewItem.email.label.component.Render({
                       translation,
                     })}
 
-                    {entityForms.formInputText2.input.component.Render({
+                    {entityForms.createNewItem.email.input.component.Render({
                       value:
                         formData[
-                          entityForms.formInputText2.input.component
+                          entityForms.createNewItem.email.input.component
                             .dataEntityAttrName as keyof IEntity
                         ],
                       onChange: handleFormInputChange,
                     })}
                   </div>
                   <div className="col-span-2 space-y-2">
-                    {entityForms.formInputText3.label.component.Render({
+                    {entityForms.createNewItem.password.label.component.Render({
                       translation,
                     })}
 
-                    {entityForms.formInputText3.input.component.Render({
+                    {entityForms.createNewItem.password.input.component.Render({
                       value:
                         formData[
-                          entityForms.formInputText3.input.component
-                            .dataEntityAttrName as keyof IEntity
-                        ],
-                      onChange: handleFormInputChange,
-                    })}
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    {entityForms.formInputText4.label.component.Render({
-                      translation,
-                    })}
-
-                    {entityForms.formInputText4.input.component.Render({
-                      value:
-                        formData[
-                          entityForms.formInputText4.input.component
+                          entityForms.createNewItem.password.input.component
                             .dataEntityAttrName as keyof IEntity
                         ],
                       onChange: handleFormInputChange,
@@ -606,28 +654,28 @@ function ElementsPage() {
                   </div>
 
                   <div className="col-span-2 space-y-2">
-                    {entityForms.formInputText5.label.component.Render({
+                    {entityForms.createNewItem.phone.label.component.Render({
                       translation,
                     })}
 
-                    {entityForms.formInputText5.input.component.Render({
+                    {entityForms.createNewItem.phone.input.component.Render({
                       value:
                         formData[
-                          entityForms.formInputText5.input.component
+                          entityForms.createNewItem.phone.input.component
                             .dataEntityAttrName as keyof IEntity
                         ],
                       onChange: handleFormInputChange,
                     })}
                   </div>
                   <div className="col-span-2 space-y-2">
-                    {entityForms.formInputText6.label.component.Render({
+                    {entityForms.createNewItem.status.label.component.Render({
                       translation,
                     })}
 
-                    {entityForms.formInputText6.input.component.Render({
+                    {entityForms.createNewItem.status.input.component.Render({
                       value:
                         formData[
-                          entityForms.formInputText6.input.component
+                          entityForms.createNewItem.status.input.component
                             .dataEntityAttrName as keyof IEntity
                         ],
                       onChange: handleFormInputChange,

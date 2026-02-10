@@ -96,28 +96,13 @@ function StockPage() {
 
   const fetchStocks = async () => {
     try {
-      // Local filtering approach as requested for vehicles, applying here too if beneficial,
-      // but standard approach first. The user asked for local search on vehicles page,
-      // but didn't explicitly specify for stock, though "based on... vehicles template" implies consistency.
-      // However, vehicles page was modifying API fetch to NOT send search term.
-      // I will implement standard API fetch first, but with local filtering capability if needed.
-      // Actually, let's stick to the pattern: Fetch everything (or paginated) and filter locally if that's what the template implies.
-      // But for now, I'll send pagination. If search should be local, I'll filter `elements` before passing to TableSection.
-      // Wait, `TableSection` takes `searchTerm` prop. If `TableSection` handles filtering, then I shouldn't filter here.
-      // If `TableSection` just highlights or `searchTerm` is for display, then I need to filter.
-      // Looking at `VehiclePage`: `searchTerm` is passed to `TableSection`. `fetchVehicles` sends empty attributes if search is local.
-      // Let's assume server-side filtering is supported via `wildcard` or `attributes`.
-      // The user asked to "fix the search input, do not send the serch value to the fetch api" for vehicles.
-      // So for stock, I should probably do the same if I strictly follow the "working example in the users page (cliens)" (which was the reference for the fix).
-      // Let's implement fetch WITHOUT search term in payload, and rely on `TableSection` (if it filters) or filter locally.
-
       const filterEntitiesPayloadDto: FilterEntitiesPayloadDto = {
         attributes: {}, // No search term here if we want local filtering or if we want to fetch all and filter client side.
         pagination: {
           perPage: itemsPerPage.toString(),
           page: currentPage.toString(),
           sortField: "name", // Default sort by name
-          sortOrder: "asc",
+          sortOrder: "desc",
         },
         wildcard: "true",
       };

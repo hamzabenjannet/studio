@@ -62,7 +62,7 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/")}
-              tooltip="Dashboard"
+              tooltip="dashboard"
             >
               <Link href="/">
                 <LayoutDashboard />
@@ -74,11 +74,11 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/tasks")}
-              tooltip="Tâches"
+              tooltip="tasks"
             >
               <Link href="/tasks">
                 <ListTodo />
-                <span>Tâches</span>
+                <span>Tasks</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -86,23 +86,23 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/workOrders")}
-              tooltip="Ordres de Réparation"
+              tooltip="work orders"
             >
               <Link href="/workOrders">
                 <Wrench />
-                <span>Ordres de Réparation</span>
+                <span>Work Orders</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              isActive={isActive("/clients")}
-              tooltip="Clients"
+              isActive={isActive("/users")}
+              tooltip="users"
             >
-              <Link href="/clients">
+              <Link href="/users">
                 <Users />
-                <span>Clients</span>
+                <span>users</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -110,11 +110,11 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/vehicles")}
-              tooltip="Véhicules"
+              tooltip="vehicles"
             >
               <Link href="/vehicles">
                 <Car />
-                <span>Véhicules</span>
+                <span>Vehicles</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -122,7 +122,7 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/stock")}
-              tooltip="Stock"
+              tooltip="stock"
             >
               <Link href="/stock">
                 <Box />
@@ -134,11 +134,11 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/billing")}
-              tooltip="Facturation"
+              tooltip="billing"
             >
               <Link href="/billing">
                 <Receipt />
-                <span>Facturation</span>
+                <span>Billing</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -150,7 +150,7 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/entities")}
-              tooltip="Entities"
+              tooltip="entities"
             >
               <Link href="/entities">
                 <Shapes />
@@ -162,11 +162,11 @@ export function MainSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/settings")}
-              tooltip="Paramètres"
+              tooltip="settings"
             >
               <Link href="/settings">
                 <Settings />
-                <span>Paramètres</span>
+                <span>Settings</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

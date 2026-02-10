@@ -117,7 +117,7 @@ function ElementsPage() {
           perPage: itemsPerPage.toString(),
           page: currentPage.toString(),
           sortField: "_id",
-          sortOrder: "asc",
+          sortOrder: "desc",
         },
         wildcard: "true",
       };
@@ -223,7 +223,11 @@ function ElementsPage() {
           string | number | boolean | undefined | null
         >);
 
-        const { message } = await response.json();
+        const responseJson = await response.json();
+
+        console.debug("responseJson", responseJson);
+
+        const { message } = responseJson;
 
         if (response.ok) {
           toast({ title: message || "updated successfully" });
@@ -239,7 +243,9 @@ function ElementsPage() {
           >,
         );
 
-        const { message } = await response.json();
+        const responseJson = await response.json();
+        console.debug("responseJson", responseJson);
+        const { message } = responseJson;
 
         if (response.ok) {
           toast({ title: message || "created successfully" });
