@@ -43,7 +43,6 @@ import {
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import { TableComponent } from "nextjs-reusable-table";
 import "nextjs-reusable-table/dist/index.css";
 import {
   filterEntities,
@@ -52,6 +51,7 @@ import {
 import { signup, updateItem } from "@/services/auth/auth.service";
 import { toast } from "@/hooks/use-toast";
 import { StatusEnum } from "@/enums/status.enum";
+import { TableSection } from "@/components/ui/table";
 
 interface IEntity {
   _id?: number;
@@ -66,15 +66,15 @@ interface IEntity {
 }
 
 export class Entity implements IEntity {
-  _id!: number;
-  givenName?: string | undefined;
-  familyName?: string | undefined;
-  email?: string;
-  phone?: string;
-  status?: StatusEnum | undefined;
-  password?: string | undefined;
-  createdAt?: string | undefined;
-  archivedAt?: string | undefined;
+  _id: number = 0;
+  givenName?: string | undefined = undefined;
+  familyName?: string | undefined = undefined;
+  email?: string = undefined;
+  phone?: string = undefined;
+  status?: StatusEnum | undefined = undefined;
+  password?: string | undefined = undefined;
+  createdAt?: string | undefined = undefined;
+  archivedAt?: string | undefined = undefined;
 }
 
 const newItemInitialState: IEntity = Object.fromEntries(
@@ -685,9 +685,12 @@ function ElementsPage() {
                   <input
                     id="formInputText7Search1"
                     type="text"
-                    placeholder="Search users..."
+                    placeholder="Search..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="w-full p-2 border rounded-md"
                   />
                 </div>
@@ -708,45 +711,20 @@ function ElementsPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <TableComponent<IEntity>
-                  columns={[...Object.keys(newItemInitialState)]}
-                  data={elements}
-                  props={[
-                    ...(Object.keys(newItemInitialState) as (keyof IEntity)[]),
-                  ]}
-                  sortableProps={
-                    // all entity props dynamically
-                    // TODO: fix sorting
-                    [
-                      "_id",
-                      ...(Object.keys(
-                        newItemInitialState,
-                      ) as (keyof IEntity)[]),
-                    ]
-                  }
-                  searchValue={searchTerm}
-                  enablePagination
-                  page={currentPage}
-                  setPage={setCurrentPage}
-                  itemsPerPage={itemsPerPage}
-                  actions
-                  actionTexts={["Edit", "Delete"]}
-                  totalPages={totalPages}
-                  actionFunctions={[
-                    (item) => handleEditClick(item),
-                    (item) => handleDeleteClick(item),
-                  ]}
-                  customClassNames={{
-                    actionDropdown: {
-                      // container: "bg-gray-100 dark:bg-gray-800",
-                      menu: "bg-gray-100 dark:bg-gray-800",
-                      // item: "hover:bg-gray-200 dark:hover:bg-gray-700",
-                      // overlay: "bg-gray-100/80 dark:bg-gray-800/80",
-                    },
-                  }}
-                />
-              </div>
+              <TableSection
+                elements={elements}
+                handleEditClick={handleEditClick}
+                handleDeleteClick={handleDeleteClick}
+                newItemInitialState={newItemInitialState}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                totalPages={totalPages}
+                searchTerm={searchTerm}
+                columns={Object.keys(newItemInitialState).filter(
+                  (key) => !["password"].includes(key),
+                )}
+              />
 
               {/* Debug: item details */}
               {/* {elements.map((entityItem) => (
