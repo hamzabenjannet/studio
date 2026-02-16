@@ -209,6 +209,7 @@ export const handleSaveEntity = <IEntity extends IBaseEntity>({
 
     Object.assign(formData, {
       ownerString: undefined,
+      workOrderString: undefined,
     });
 
     // format the form data

@@ -546,7 +546,6 @@ function ElementsPage() {
                     const formDataDto = {
                       ...itemToDelete,
                       status: SttsEnum.TO_BE_DELETED,
-                      ownerString: undefined,
                     };
 
                     handleSaveEntity({
