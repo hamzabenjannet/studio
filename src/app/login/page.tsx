@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,32 +14,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { signin } from "@/services/auth/auth.service";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { login } = useAuth();
+  const { login, refreshSession, authenticatedUser, loading } = useAuth();
   const [email, setEmail] = React.useState("demo@example.com");
   const [password, setPassword] = React.useState("demopass");
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-    // use the signin function from the auth service
-    const signinResults = await signin({ email, password });
-
-    const { expires_in, access_token, refresh_token, message } = signinResults;
-
-    console.log("/login response:", signinResults);
-
-    if (!access_token || !refresh_token || !expires_in) {
-      // Show an error message to the user
-      alert(message || "access_token is missing");
-      throw new Error(message || "access_token is missing");
-    }
-    // if the login is successful, store the token in the context
-    login({ email }, { expires_in, access_token, refresh_token });
-    router.push("/");
+    login({ email, password });
   };
+
+  React.useEffect(() => {
+    if (authenticatedUser) {
+      return;
+    }
+    refreshSession();
+  }, [authenticatedUser]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -82,7 +73,18 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <div className="grid gap-2">
+                <p>{loading ? "Loading..." : ""}</p>
+                <p>
+                  {authenticatedUser?.email &&
+                    `You are already signed in as ${authenticatedUser?.email}`}
+                </p>
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!(!loading && !authenticatedUser?.email)}
+              >
                 Se connecter
               </Button>
             </div>

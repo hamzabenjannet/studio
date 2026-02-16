@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,12 +14,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { signin, signup } from "@/services/auth/auth.service";
+import { signup } from "@/services/auth/auth.service";
 import { toast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
-  const router = useRouter();
-  const { login } = useAuth();
+  const {
+    login,
+    refreshSession,
+    authenticatedUser,
+    accessToken,
+    getAccessToken,
+    loading,
+  } = useAuth();
 
   const [email, setEmail] = React.useState("demo@example.com");
   const [password, setPassword] = React.useState("demopass");
@@ -44,9 +50,9 @@ export default function SignupPage() {
 
     console.log("signupResults", signupResults);
 
-    const { email: signupEmail, message } = signupResults;
+    const { email: signupEmailResult, message } = signupResults;
 
-    if (!signupEmail) {
+    if (!signupEmailResult) {
       // alert(message);
       toast({
         title: message,
@@ -62,29 +68,39 @@ export default function SignupPage() {
     });
 
     // signin
-    const signinResults = await signin({ email: signupEmail, password });
+    // const signinResults = await signin({ email: signupEmail, password });
+    login({ email, password });
+    refreshSession();
 
-    const {
-      expires_in,
-      access_token,
-      refresh_token,
-      message: signinMessage,
-    } = signinResults;
+    // const {
+    //   expires_in,
+    //   access_token,
+    //   refresh_token,
+    //   message: signinMessage,
+    // } = signinResults;
 
-    console.log("/login response:", signinResults);
+    // console.log("/login response:", signinResults);
 
-    if (!access_token || !refresh_token || !expires_in) {
-      // Show an error message to the user
-      alert(signinMessage || "access_token is missing");
-      throw new Error(signinMessage || "access_token is missing");
-    }
+    // if (!access_token || !refresh_token || !expires_in) {
+    //   // Show an error message to the user
+    //   alert(signinMessage || "access_token is missing");
+    //   throw new Error(signinMessage || "access_token is missing");
+    // }
     // if the login is successful, store the token in the context
-    login(
-      { email, givenName, familyName },
-      { expires_in, access_token, refresh_token },
-    );
-    router.push("/");
+    // login(
+    //   { email, givenName, familyName },
+    //   // { expires_in, access_token, refresh_token },
+    // );
+    // router.push("/");
   };
+
+  React.useEffect(() => {
+    const availableAccessToken = getAccessToken();
+
+    if (availableAccessToken) {
+      refreshSession();
+    }
+  }, [accessToken]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -141,7 +157,19 @@ export default function SignupPage() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <Button type="submit" className="w-full">
+
+              <div className="grid gap-2">
+                <p>{loading ? "Loading..." : ""}</p>
+                <p>
+                  {authenticatedUser?.email &&
+                    `You are already signed in as ${authenticatedUser?.email}`}
+                </p>
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!(!loading && !authenticatedUser?.email)}
+              >
                 Créer un compte
               </Button>
             </div>

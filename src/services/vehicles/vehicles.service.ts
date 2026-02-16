@@ -1,21 +1,8 @@
 import { API_URL } from "@/app/consts";
-
-export class FilterPaginationParamsDto {
-  perPage?: string = "10";
-  offset?: string = "0";
-  page?: string = "1";
-  sortField?: string = "_id";
-  sortOrder?: string = "asc";
-}
-
-export type FilterEntitiesPayloadDto = {
-  attributes: Record<string, string | undefined | null | number | boolean>;
-  pagination?: FilterPaginationParamsDto;
-  wildcard?: string;
-};
+import { DatasetFilterDto, fetchWrapper } from "../commun";
 
 export const filterVehicles = async (
-  filterEntitiesPayloadDto: FilterEntitiesPayloadDto,
+  filterEntitiesPayloadDto: DatasetFilterDto,
 ) => {
   return await fetch(`${API_URL}/filterVehicles`, {
     method: "POST",
@@ -33,7 +20,7 @@ export const createVehicle = async (
     string | number | boolean | undefined | null
   >,
 ) => {
-  return await fetch(`${API_URL}/createVehicle`, {
+  const response = await fetch(`${API_URL}/createVehicle`, {
     method: "POST",
     body: JSON.stringify(vehiclePayloadDto),
     headers: {
@@ -41,6 +28,8 @@ export const createVehicle = async (
       "Content-Type": "application/json",
     },
   });
+  const data = await response.json();
+  return data;
 };
 
 export const updateVehicle = async (
@@ -49,13 +38,10 @@ export const updateVehicle = async (
     string | number | boolean | undefined | null
   >,
 ) => {
-  return await fetch(`${API_URL}/updateVehicle`, {
-    method: "POST",
+  return await fetchWrapper({
     body: JSON.stringify(vehicleDetailsPayloadDto),
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      "Content-Type": "application/json",
-    },
+    method: "POST",
+    url: `${API_URL}/updateVehicle`,
   });
 };
 

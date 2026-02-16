@@ -11,4 +11,5 @@ export enum StatusEnum {
   PUBLISHED = "published",
   IN_REPAIR = "in-repair",
   SOLD = "sold",
+  TO_BE_DELETED = "to-be-deleted",
 }

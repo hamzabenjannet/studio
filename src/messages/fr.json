@@ -1,7 +1,57 @@
 {
   "common": {
     "actions": "Actions",
-    "notifications": "Notifications"
+    "addItemButton": "Ajouter",
+    "notifications": "Notifications",
+
+    "alertDeleteItem": "Êtes-vous sûr de vouloir supprimer?",
+    "alertDeleteItemTitle": "Suppression d'entité",
+    "alertDeleteItemDescription": "Cette action est irréversible. L'entité sera définitivement supprimée.",
+    "alertDeleteItemConfirm": "Supprimer",
+    "cancelText": "Annuler",
+    "saveText": "Enregistrer",
+    "addItemDialogTitle": "Ajouter une nouvelle entité",
+    "addItemDialogSubtitle": "Remplissez les informations ci-dessous.",
+    "editItemDialogTitle": "Modifier l'entité",
+    "editItemDialogSubtitle": "Mettez à jour les informations de l'entité.",
+    "itemSttsLabel": "Status",
+
+    "itemSelectSttsPlaceholder": "Sélectionnez le statut",
+    "selectOwner": "Sélectionnez le propriétaire",
+    "itemSelectItemPlaceholder": "Sélectionnez un élément"
+  },
+  "entityForms": {
+    "editItemAttributes": {
+      "givenName": "Nom",
+      "familyName": "Prénom",
+      "email": "Email",
+      "password": "Mot de passe",
+      "phone": "Numéro de téléphone",
+      "address": "Adresse",
+      "status": "Statut",
+
+      "make": "Marque",
+      "model": "Modèle",
+      "year": "Année",
+      "plateNumber": "Numéro de plaque",
+      "vin": "VIN",
+      "owner": "Propriétaire",
+
+      "name": "Nom",
+      "sku": "SKU",
+      "quantity": "Quantité",
+      "buyPrice": "Prix d'achat",
+      "sellPrice": "Prix de vente",
+      "availableInInventory": "Disponible en stock",
+      "notes": "Notes",
+
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "estimatedDuration": "Durée estimée en minutes",
+      "vehicle": "Véhicule",
+
+      "labors": "Maitre d'oeuvre"
+    }
   },
   "Header": {
     "searchPlaceholder": "Rechercher...",
@@ -19,7 +69,6 @@
   "usersPage": {
     "pageTitle": "Clients",
     "pageSubtitle": "Gérez votre base de clients.",
-    "addItemButton": "Ajouter un client",
     "itemsTabeTitle": "Liste des clients",
     "itemsTabeSubtitle": "Consultez et gérez tous les clients enregistrés.",
     "itemsTabeColumnNameAttrName": "Nom",
@@ -31,23 +80,60 @@
     "itemsTabeColumnNameAttrActionsDropdownButtonEdit": "Modifier",
     "itemsTabeColumnNameAttrActionsDropdownButtonDelete": "Supprimer",
     "itemsTabeColumnNameAttrActionsDropdownButtonViewCars": "Voir les véhicules",
-    "alertDeleteItem": "Êtes-vous sûr de vouloir supprimer?",
-    "alertDeleteItemTitle": "Suppression de client",
-    "alertDeleteItemDescription": " Cette action est irréversible. Le client sera définitivement supprimé.",
-    "alertDeleteItemConfirm": "Supprimer",
-    "cancelText": "Annuler",
-    "saveText": "Sauvegarder",
-    "addItemDialogTitle": "Ajouter un nouveau client",
-    "addItemDialogSubtitle": "Remplissez les informations ci-dessous.",
-    "editItemDialogTitle": "Modifier le client",
-    "editItemDialogSubtitle": "Mettez à jour les informations du client.",
-    "itemAttrInputText1Label": "Nom",
-    "itemAttrInputText2Label": "Prénom",
-    "itemAttrEmailLabel": "Email",
-    "itemAttrPasswordLabel": "Mot de passe",
-    "itemAttrPhoneLabel": "Numéro de téléphone",
-    "itemAttrAddressLabel": "Adresse",
-    "itemStatusLabel": "Statut",
     "itemSelectStatusPlaceholder": "Sélectionnez le statut"
+  },
+  "users": {
+    "page": {
+      "pageTitle": "users",
+      "pageSubtitle": "Manage your users",
+      "itemsTabeTitle": "users List",
+      "itemsTabeSubtitle": "View and manage all registered users.",
+      "itemsTabeColumnNameAttrName": "Name",
+      "itemsTabeColumnNameAttrEmail": "Email",
+      "itemsTabeColumnNameAttrPhone": "Phone",
+      "itemsTabeColumnNameAttrAddress": "Address",
+      "itemsTabeColumnNameAttrStatus": "Status",
+      "itemsTabeColumnNameAttrActions": "Actions",
+      "itemsTabeColumnNameAttrActionsDropdownButtonEdit": "Edit",
+      "itemsTabeColumnNameAttrActionsDropdownButtonDelete": "Delete",
+      "itemsTabeColumnNameAttrActionsDropdownButtonViewCars": "View Cars",
+      "itemSelectStatusPlaceholder": "Select Status"
+    }
+  },
+  "vehicles": {
+    "page": {
+      "pageTitle": "Véhicules",
+      "pageSubtitle": "Gérez votre base de véhicules.",
+      "itemsTabeTitle": "Liste des véhicules",
+      "itemsTabeSubtitle": "Consultez et gérez tous les véhicules enregistrés.",
+      "itemsTabeColumnNameAttrName": "Nom",
+      "itemsTabeColumnNameAttrEmail": "Email",
+      "itemsTabeColumnNameAttrPhone": "Numéro de téléphone",
+      "itemsTabeColumnNameAttrAddress": "Adresse",
+      "itemsTabeColumnNameAttrStatus": "Statut",
+      "itemsTabeColumnNameAttrActions": "Actions",
+      "itemsTabeColumnNameAttrActionsDropdownButtonEdit": "Modifier",
+      "itemsTabeColumnNameAttrActionsDropdownButtonDelete": "Supprimer",
+      "itemsTabeColumnNameAttrActionsDropdownButtonViewCars": "Voir les véhicules",
+      "itemSttsLabel": "Status",
+      "itemSelectStatusPlaceholder": "Sélectionnez le statut",
+      "itemSelectSttsPlaceholder": "Sélectionnez le statut"
+    }
+  },
+  "stock": {
+    "page": {
+      "pageTitle": "Stock",
+      "pageSubtitle": "Manage your Stock",
+      "itemsTabeTitle": "Stock List",
+      "itemsTabeSubtitle": "View and manage all registered Stock."
+    }
+  },
+  "workOrders": {
+    "page": {
+      "pageTitle": "Commandes de travail",
+      "pageSubtitle": "Gérez vos commandes de travail.",
+      "itemsTabeTitle": "Liste des commandes de travail",
+      "itemsTabeSubtitle": "Consultez et gérez toutes les commandes de travail enregistrées."
+    }
   }
 }

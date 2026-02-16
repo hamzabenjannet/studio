@@ -26,7 +26,7 @@ const userAvatar = {
 };
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { authenticatedUser, logout } = useAuth();
   const t = useTranslations("Header");
   const { locale, setLocale } = useI18n();
 
@@ -46,7 +46,7 @@ export function Header() {
           <Bell className="h-5 w-5" />
           <span className="sr-only">{t("notifications")}</span>
         </Button>
-        {user ? (
+        {authenticatedUser ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -56,7 +56,7 @@ export function Header() {
                     alt={userAvatar.description}
                     data-ai-hint={userAvatar.imageHint}
                   />
-                  <AvatarFallback>{user.givenName}</AvatarFallback>
+                  <AvatarFallback>{authenticatedUser.givenName}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

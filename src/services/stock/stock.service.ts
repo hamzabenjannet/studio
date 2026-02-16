@@ -1,21 +1,8 @@
 import { API_URL } from "@/app/consts";
-
-export class FilterPaginationParamsDto {
-  perPage?: string = "10";
-  offset?: string = "0";
-  page?: string = "1";
-  sortField?: string = "_id";
-  sortOrder?: string = "asc";
-}
-
-export type FilterEntitiesPayloadDto = {
-  attributes: Record<string, string | undefined | null | number | boolean>;
-  pagination?: FilterPaginationParamsDto;
-  wildcard?: string;
-};
+import { DatasetFilterDto, fetchWrapper } from "../commun";
 
 export const filterStocks = async (
-  filterEntitiesPayloadDto: FilterEntitiesPayloadDto,
+  filterEntitiesPayloadDto: DatasetFilterDto,
 ) => {
   return await fetch(`${API_URL}/filterStocks`, {
     method: "POST",
@@ -28,34 +15,33 @@ export const filterStocks = async (
 };
 
 export const createStock = async (
-  stockPayloadDto: Record<
+  vehiclePayloadDto: Record<
     string,
     string | number | boolean | undefined | null
   >,
 ) => {
-  return await fetch(`${API_URL}/createStock`, {
+  const response = await fetch(`${API_URL}/createStock`, {
     method: "POST",
-    body: JSON.stringify(stockPayloadDto),
+    body: JSON.stringify(vehiclePayloadDto),
     headers: {
       Authorization: `Bearer ${localStorage.getItem("access_token")}`,
       "Content-Type": "application/json",
     },
   });
+  const data = await response.json();
+  return data;
 };
 
 export const updateStock = async (
-  stockDetailsPayloadDto: Record<
+  vehicleDetailsPayloadDto: Record<
     string,
     string | number | boolean | undefined | null
   >,
 ) => {
-  return await fetch(`${API_URL}/updateStock`, {
+  return await fetchWrapper({
+    body: JSON.stringify(vehicleDetailsPayloadDto),
     method: "POST",
-    body: JSON.stringify(stockDetailsPayloadDto),
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      "Content-Type": "application/json",
-    },
+    url: `${API_URL}/updateStock`,
   });
 };
 

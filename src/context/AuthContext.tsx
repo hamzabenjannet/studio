@@ -8,63 +8,149 @@ import React, {
   ReactNode,
 } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { API_URL } from "@/app/consts";
 
-interface User {
+import { signin } from "@/services/auth/auth.service";
+
+interface IAuthenticatedUser {
   [key: string]: any;
 }
 
 interface AuthContextType {
-  user: User | null;
+  authenticatedUser: IAuthenticatedUser | null;
+  accessToken?: string | null;
+  getAccessToken: () => string | null;
   loading: boolean;
-  login: (
-    user: User,
-    token: { expires_in: string; access_token: string; refresh_token: string },
-  ) => void;
+  login: (user: IAuthenticatedUser) => void;
+  refreshSession: () => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [authenticatedUser, setAuthenticatedUser] =
+    useState<IAuthenticatedUser | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
+  const currentPathname = usePathname();
 
-  useEffect(() => {
-    const access_token = localStorage.getItem("access_token");
-    if (access_token && user) {
-      // In a real app, you'd validate the token with your API
-      // For now, we'll just use a placeholder user
-      setUser({
-        ...user,
-        // Add other user properties as needed
-      });
+  const setLocalStorageItems = ({
+    items,
+    values,
+  }: {
+    items: string[];
+    values: { [key: string]: any };
+  }) => {
+    items.forEach((item) => {
+      // if value is not a string return
+      if (typeof values[item] !== "string") {
+        return;
+      }
+      localStorage.setItem(item, values[item]);
+    });
+  };
+  const removeLocalStorageItems = ({ items }: { items: string[] }) => {
+    items.forEach((item) => {
+      localStorage.removeItem(item);
+    });
+  };
+
+  const login = async (user: IAuthenticatedUser) => {
+    const { email, password } = user;
+
+    const signinResults = await signin({ email, password });
+
+    const { access_token, message } = signinResults;
+
+    console.debug("/login response:", signinResults);
+
+    if (!access_token) {
+      // Show an error message to the user
+      alert(message || "access_token is missing");
+      throw new Error(message || "access_token is missing");
     }
-    setLoading(false);
-  }, []);
 
-  const login = (
-    user: User,
-    token: { expires_in: string; access_token: string; refresh_token: string },
-  ) => {
-    localStorage.setItem("access_token", token.access_token);
-    localStorage.setItem("refresh_token", token.refresh_token);
-    localStorage.setItem("expires_in", token.expires_in);
+    setAccessToken(access_token);
+    setLocalStorageItems({
+      items: ["access_token", "refresh_token", "expires_in"],
+      values: signinResults,
+    });
 
-    setUser(user);
-    router.push("/");
+    refreshSession();
+  };
+
+  const refreshSession = async () => {
+    try {
+      const localStorageAccessToken = localStorage.getItem("access_token");
+      if (!localStorageAccessToken) {
+        console.debug("refreshSession: No access token found in localStorage");
+        if (["/signup"].includes(currentPathname)) {
+          return;
+        }
+        router.push("/login");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/userDetails`, {
+        headers: {
+          Authorization: `Bearer ${localStorageAccessToken}`,
+        },
+      });
+      const userDetails: IAuthenticatedUser = await response.json();
+      const { email } = userDetails;
+
+      if (!email) {
+        router.push("/login");
+        // throw new Error("Email not found in user details");
+        console.debug("refreshSession: No email found in user details");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(userDetails.message || "Failed to fetch user details");
+      }
+
+      setAccessToken(localStorageAccessToken);
+      setAuthenticatedUser(userDetails);
+
+      if (!["/login", "/signup"].includes(currentPathname)) {
+        router.push(currentPathname);
+        return;
+      }
+
+      router.push("/");
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("expires_in");
-    setUser(null);
-    router.push("/login");
+    removeLocalStorageItems({
+      items: ["access_token", "refresh_token", "expires_in"],
+    });
+    setAuthenticatedUser(null);
+    refreshSession();
   };
 
-  const value = { user, loading, login, logout };
+  const getAccessToken = (): string | null => {
+    return accessToken || localStorage.getItem("access_token") || null;
+  };
+
+  const value = {
+    authenticatedUser,
+    loading,
+    login,
+    refreshSession,
+    logout,
+    accessToken,
+    getAccessToken,
+  };
+
+  useEffect(() => {
+    setLoading(false);
+  }, [authenticatedUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

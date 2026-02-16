@@ -4,10 +4,10 @@
 
 - Task Management: Manage tasks with assignments, priorities, and statuses.
 - Repair Orders/Work Orders: Track each repair intervention with detailed work orders.
-- Vehicle/Client History: Maintain essential history for vehicle and client service tracking.
+- Vehicle/User History: Maintain essential history for vehicle and User service tracking.
 - Stock Management: Manage spare parts, stock levels, and alerts for low stock.
 - Automated Billing & Estimates: Automatically generate bills and estimates.
-- CRM & Client Communications: Manage client relationships, reminders, and SMS/email communications.
+- CRM & User Communications: Manage User relationships, reminders, and SMS/email communications.
 - Multi-user & Security: Enable different user roles and security permissions.
 
 ## Style Guidelines:

@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TableSection } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -42,71 +41,54 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
+
+import "nextjs-reusable-table/dist/index.css";
+
 import { Checkbox } from "@/components/ui/checkbox";
+
+import { IEntity as IEntityUser } from "@/app/users/page";
+import { IEntity as IEntityVehicule } from "@/app/vehicles/page";
+import { IEntity as IEntityStock } from "@/app/stock/page";
+import { filterEntities as datasetFetchUsersMethod } from "@/services/users/users.service";
+import {
+  createVehicle as createEntityVehiclesService,
+  filterVehicles as datasetFetchVehiclesMethod,
+  updateVehicle as updateEntityVehiclesService,
+} from "@/services/vehicles/vehicles.service";
+
+import {
+  createStock as createEntityStockService,
+  filterStocks as datasetFetchStocksMethod,
+  updateStock as updateEntityStockService,
+} from "@/services/stock/stock.service";
+
+import {
+  createWorkOrder as createEntityWorkOrderService,
+  filterWorkOrders as datasetFetchMethod,
+  updateWorkOrder as updateEntityWorkOrderService,
+} from "@/services/work-order/work-order.service";
+
+import { StatusEnum as SttsEnum } from "@/enums/status.enum";
+import { TableSection } from "@/components/ui/table";
+
+import {
+  buildFetchElements,
+  buildItemInitState,
+  handleSaveEntity,
+  IBaseEntity,
+} from "@/services/commun";
+
+import { Entity as UserEntity } from "@/app/users/page";
+import { Entity as VehiculeEntity } from "@/app/vehicles/page";
+import { Entity as StockEntity } from "@/app/stock/page";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import {
-  createWorkOrder,
-  deleteWorkOrder,
-  filterWorkOrders,
-  FilterEntitiesPayloadDto,
-  updateWorkOrder,
-} from "@/services/work-order/work-order.service";
-import { filterVehicles } from "@/services/vehicles/vehicles.service";
-import { filterEntities as filterUsers } from "@/services/users/users.service";
-import { filterStocks } from "@/services/stock/stock.service";
-import { toast } from "@/hooks/use-toast";
-
-interface User {
-  _id?: number | string;
-  givenName?: string;
-  familyName?: string;
-}
-
-interface Stock {
-  _id?: number | string;
-  name?: string;
-  quantity?: number;
-}
-
-interface Vehicle {
-  _id?: number | string;
-  make?: string;
-  model?: string;
-  plateNumber?: string;
-}
-
-interface IWorkOrder {
-  _id?: number | string | undefined;
-  startTime?: string | undefined;
-  endTime?: string | undefined;
-  estimatedDuration?: string | undefined;
-  notes?: string | undefined;
-  vehicle?: Vehicle | undefined;
-  vehicleString?: string | undefined;
-  labors?: User[] | undefined;
-  laborsString?: string | undefined;
-  materials?: Stock[] | undefined;
-  materialsString?: string | undefined;
-  createdAt?: string | undefined;
-}
-
-export class WorkOrderEntity implements IWorkOrder {
-  _id?: number | string | undefined = undefined;
-  startTime?: string | undefined = undefined;
-  endTime?: string | undefined = undefined;
-  estimatedDuration?: string | undefined = undefined;
-  notes?: string | undefined = undefined;
-  vehicle?: Vehicle | undefined = undefined;
-  vehicleString?: string | undefined = undefined;
-  labors?: User[] | undefined = [];
-  laborsString?: string | undefined = undefined;
-  materials?: Stock[] | undefined = [];
-  materialsString?: string | undefined = undefined;
-}
-
-const formatEntityRecursive = (entity: any, depth: number = 0): string => {
+const formatEntityRecursive = (
+  entity: any,
+  depth: number = 0,
+): string | undefined => {
   if (entity === null || entity === undefined) return "";
   if (typeof entity !== "object") return String(entity);
   if (entity instanceof Date) return entity.toLocaleString();
@@ -125,291 +107,638 @@ const formatEntityRecursive = (entity: any, depth: number = 0): string => {
         .join("\n --- \n")
     );
   }
-
-  const entries = Object.entries(entity).filter(
-    ([key]) =>
-      ![
-        "_id",
-        "password",
-        "passwordSalt",
-        "createdAt",
-        "updatedAt",
-        "__v",
-        "id",
-      ].includes(key),
-  );
-
-  if (entries.length === 0) return String(entity);
-
-  return entries
-    .map(([key, value]) => {
-      if (!value) {
-        return "";
-      }
-
-      let valueStr = "";
-
-      if (
-        typeof value === "object" &&
-        value !== null &&
-        !(value instanceof Date)
-      ) {
-        valueStr = `^__ ${formatEntityRecursive(value, depth + 1)}`;
-      } else {
-        valueStr = String(
-          value instanceof Date ? value.toLocaleString() : value,
-        );
-      }
-      return `-- key: ${key} | value: ${valueStr} \n`;
-    })
-    .join("");
 };
 
-const newItemInitialState: IWorkOrder = new WorkOrderEntity();
+export const entityName = "workOrder";
+export const entityPluralName = "workOrders";
+export const datasetFetchResponseItemsAttr = "workOrders";
 
-function WorkOrdersPage() {
-  const [elements, setElements] = useState<IWorkOrder[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [stocks, setStocks] = useState<Stock[]>([]);
+export interface IEntity extends IBaseEntity {
+  startTime?: string | undefined;
+  endTime?: string | undefined;
+  estimatedDuration?: string | undefined;
+  notes?: string | undefined;
+  vehicle?: VehiculeEntity | undefined;
+  vehicleString?: string | undefined;
+  labors?: UserEntity[] | undefined;
+  laborsString?: string | undefined;
+  materials?: StockEntity[] | undefined;
+  materialsString?: string | undefined;
+  createdAt?: string | undefined;
+}
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<IWorkOrder | null>(null);
-  const [formData, setFormData] = useState<IWorkOrder>(newItemInitialState);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<IWorkOrder | null>(null);
+export class Entity implements IEntity {
+  _id: number = -2;
+  startTime?: string | undefined = undefined;
+  endTime?: string | undefined = undefined;
+  estimatedDuration?: string | undefined = undefined;
+  notes?: string | undefined = undefined;
+  vehicle?: VehiculeEntity | undefined = undefined;
+  vehicleString?: string | undefined = undefined;
+  labors?: UserEntity[] | undefined = [];
+  laborsString?: string | undefined = undefined;
+  materials?: StockEntity[] | undefined = [];
+  materialsString?: string | undefined = undefined;
+  status?: SttsEnum | undefined = SttsEnum.ACTIVE;
+}
 
+export const itemInitState = buildItemInitState<IEntity>({
+  EntityClass: Entity,
+});
+
+export const buildEntityForms = ({
+  translation = (key: string) => key,
+  handleFormInputChange = ({}: Record<string, any>) => {},
+}: {
+  translation?: (key: string) => string;
+  handleFormInputChange?: (event: any) => void;
+}) => {
+  const entityForms = {
+    editItemAttributes: {
+      vehicle: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {/* {translation
+                        ? translation("common.selectOwner")
+                        : "itemAttrInputTextLabel"} */}
+                {"vehicle"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "select",
+          dataEntityAttrName: "vehicle",
+          Render: ({
+            props,
+            value = "",
+          }: {
+            props?: React.ComponentProps<typeof Select>;
+            value?: string | number | undefined | VehiculeEntity;
+          }) => {
+            const [selectOptions, setSelectOptions] = useState<
+              VehiculeEntity[]
+            >([]);
+
+            const fillSelectOptions = async () => {
+              const response = await datasetFetchVehiclesMethod({
+                attributes: {},
+                pagination: {
+                  perPage: "99999999",
+                },
+              });
+
+              const { vehicles }: { vehicles: VehiculeEntity[] } =
+                await response.json();
+
+              setSelectOptions(vehicles.map((item: VehiculeEntity) => item));
+            };
+            React.useEffect(() => {
+              fillSelectOptions();
+            }, [datasetFetchVehiclesMethod]);
+
+            const vehicleId =
+              selectOptions.find((VehicleItem: VehiculeEntity) => {
+                return (
+                  VehicleItem._id?.toString() ===
+                  (value as VehiculeEntity)?._id?.toString()
+                );
+              })?._id ?? "";
+
+            return (
+              <Select
+                {...props}
+                value={vehicleId.toString()}
+                onValueChange={(onValueChangeValue) => {
+                  const _onValueChangeValue = selectOptions.find(
+                    (UserItem: UserEntity) => {
+                      return (
+                        UserItem._id?.toString() ===
+                        (onValueChangeValue as string)
+                      );
+                    },
+                  );
+
+                  handleFormInputChange?.({
+                    target: {
+                      value: _onValueChangeValue,
+                      dataset: {
+                        entityAttrName: "vehicle",
+                      },
+                    },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>);
+                }}
+                data-entity-attr-name="vehicle"
+              >
+                <SelectTrigger id="vehicle">
+                  <SelectValue
+                    placeholder={translation(
+                      "entityForms.editItemAttributes.vehicle",
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectOptions.map((selectOptionsItem) => {
+                    if (!selectOptionsItem._id) {
+                      return null;
+                    }
+                    return (
+                      <SelectItem
+                        key={`vehicle_${selectOptionsItem._id}`}
+                        value={selectOptionsItem._id.toString()}
+                      >
+                        {(selectOptionsItem.plateNumber
+                          ? selectOptionsItem.plateNumber
+                          : selectOptionsItem.vin) ||
+                          `_id: ${selectOptionsItem._id}`}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            );
+          },
+        },
+      },
+
+      labors: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {/* {translation
+                        ? translation("common.selectOwner")
+                        : "itemAttrInputTextLabel"} */}
+                {"labors"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "select",
+          dataEntityAttrName: "labors",
+          Render: ({
+            props,
+            value = [],
+          }: {
+            props?: React.ComponentProps<typeof Select>;
+            value?: UserEntity[];
+          }) => {
+            const [selectOptions, setSelectOptions] = useState<UserEntity[]>(
+              [],
+            );
+
+            const fillSelectOptions = async () => {
+              const response = await datasetFetchUsersMethod({
+                attributes: {},
+                pagination: {
+                  perPage: "99999999",
+                },
+              });
+
+              const { users }: { users: UserEntity[] } = await response.json();
+
+              setSelectOptions(users.map((item: UserEntity) => item));
+            };
+            const handleItemsToggle = (
+              userSelected: UserEntity,
+              checkedState: string | boolean,
+            ) => {
+              const _onValueChangeValue: UserEntity[] = checkedState
+                ? [...value, userSelected]
+                : value.filter((item) => item._id !== userSelected._id);
+
+              handleFormInputChange?.({
+                target: {
+                  value: _onValueChangeValue,
+                  dataset: {
+                    entityAttrName: "labors",
+                  },
+                },
+              } as unknown as React.ChangeEvent<HTMLInputElement>);
+            };
+
+            React.useEffect(() => {
+              fillSelectOptions();
+            }, [datasetFetchUsersMethod]);
+
+            return (
+              <ScrollArea className="h-full p-4">
+                <div className="space-y-2">
+                  {selectOptions.map((selectOptionsItem) => (
+                    <div
+                      key={selectOptionsItem._id}
+                      className="flex items-center space-x-2"
+                    >
+                      <Checkbox
+                        id={`labor-${selectOptionsItem._id}`}
+                        checked={value?.some(
+                          (l) => l._id === selectOptionsItem._id,
+                        )}
+                        onCheckedChange={(checkedState) =>
+                          handleItemsToggle(selectOptionsItem, checkedState)
+                        }
+                      />
+                      <label
+                        htmlFor={`labor-${selectOptionsItem._id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {selectOptionsItem.givenName}{" "}
+                        {selectOptionsItem.familyName}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            );
+          },
+        },
+      },
+
+      materials: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {/* {translation
+                        ? translation("common.selectOwner")
+                        : "itemAttrInputTextLabel"} */}
+                {"materials"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "select",
+          dataEntityAttrName: "materials",
+          Render: ({
+            props,
+            value = [],
+          }: {
+            props?: React.ComponentProps<typeof Select>;
+            value?: StockEntity[];
+          }) => {
+            const [selectOptions, setSelectOptions] = useState<StockEntity[]>(
+              [],
+            );
+
+            const fillSelectOptions = async () => {
+              const response = await datasetFetchStocksMethod({
+                attributes: {},
+                pagination: {
+                  perPage: "99999999",
+                },
+              });
+
+              const { stockItems }: { stockItems: StockEntity[] } =
+                await response.json();
+
+              setSelectOptions(stockItems.map((item: StockEntity) => item));
+            };
+            const handleItemsToggle = (
+              itemSelected: StockEntity,
+              checkedState: string | boolean,
+            ) => {
+              const _onValueChangeValue: StockEntity[] = checkedState
+                ? [...value, itemSelected]
+                : value.filter((item) => item._id !== itemSelected._id);
+
+              handleFormInputChange?.({
+                target: {
+                  value: _onValueChangeValue,
+                  dataset: {
+                    entityAttrName: "materials",
+                  },
+                },
+              } as unknown as React.ChangeEvent<HTMLInputElement>);
+            };
+
+            React.useEffect(() => {
+              fillSelectOptions();
+            }, [datasetFetchStocksMethod]);
+
+            return (
+              <ScrollArea className="h-full p-4">
+                <div className="space-y-2">
+                  {selectOptions.map((selectOptionsItem) => (
+                    <div
+                      key={selectOptionsItem._id}
+                      className="flex items-center space-x-2"
+                    >
+                      <Checkbox
+                        id={`material-${selectOptionsItem._id}`}
+                        checked={value?.some(
+                          (l) => l._id === selectOptionsItem._id,
+                        )}
+                        onCheckedChange={(checkedState) =>
+                          handleItemsToggle(selectOptionsItem, checkedState)
+                        }
+                      />
+                      <label
+                        htmlFor={`material-${selectOptionsItem._id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {selectOptionsItem.name || selectOptionsItem._id}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            );
+          },
+        },
+      },
+
+      estimatedDuration: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation(
+                      "entityForms.editItemAttributes.estimatedDuration",
+                    )
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "number",
+          dataEntityAttrName: "estimatedDuration",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="estimatedDuration"
+                type="number"
+                placeholder="Estimated duration in minutes"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="estimatedDuration"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      startTime: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.startTime")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "datetime-local",
+          dataEntityAttrName: "startTime",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="startTime"
+                type="datetime-local"
+                placeholder="Start Time"
+                value={value === null ? "" : value?.toString().split(".")?.[0]}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="startTime"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      endTime: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.endTime")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "datetime-local",
+          dataEntityAttrName: "endTime",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="endTime"
+                type="datetime-local"
+                placeholder="End Time"
+                value={value === null ? "" : value?.toString().split(".")?.[0]}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="endTime"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      status: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.status")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "select",
+          dataEntityAttrName: "status",
+          Render: ({
+            props,
+            value = "",
+          }: {
+            props?: React.ComponentProps<typeof Select>;
+            value?: string | number | undefined;
+          }) => {
+            const selectOptions = Object.values(SttsEnum);
+
+            return (
+              <Select
+                {...props}
+                value={(value === null ? "" : value) as string}
+                onValueChange={(value) => {
+                  handleFormInputChange?.({
+                    target: {
+                      value,
+                      dataset: {
+                        entityAttrName: "status",
+                      },
+                    },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>);
+                }}
+                data-entity-attr-name="status"
+              >
+                <SelectTrigger id="status">
+                  <SelectValue
+                    placeholder={translation(
+                      "usersPage.itemSelectStatusPlaceholder",
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectOptions.map((mapItemValue) => (
+                    <SelectItem
+                      key={`status_${mapItemValue}`}
+                      value={mapItemValue}
+                    >
+                      {mapItemValue}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            );
+          },
+        },
+      },
+
+      notes: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.notes")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "notes",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Textarea>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Textarea
+                id="notes"
+                placeholder="Notes supplémentaires..."
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+              />
+            );
+          },
+        },
+      },
+    },
+    // editItemAttributes: {} as Record<string, any>,
+  };
+
+  return { entityForms };
+};
+
+function ElementsPage() {
+  // begin ElementsPage states and handlers setup
+  const translation = useTranslations();
+  const [elements, setElements] = useState<IEntity[]>([] as IEntity[]);
+  const [formData, setFormData] = useState<IEntity | undefined>(itemInitState);
+  const [itemToDelete, setItemToDelete] = useState<IEntity | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-
-  // Fetch Work Orders
-  const fetchWorkOrders = async () => {
-    try {
-      const filterPayload: FilterEntitiesPayloadDto = {
-        attributes: {},
-        pagination: {
-          perPage: itemsPerPage.toString(),
-          page: currentPage.toString(),
-          sortField: "createdAt",
-          sortOrder: "desc",
-        },
-        wildcard: "true",
-      };
-
-      const response = await filterWorkOrders(filterPayload);
-      const data = await response.json();
-
-      if (data?.workOrders) {
-        setElements(data.workOrders);
-      } else {
-        setElements([]);
-      }
-
-      if (data?.pagination?.totalPages) {
-        setTotalPages(data.pagination.totalPages);
-      }
-    } catch (error) {
-      console.error("Failed to fetch work orders", error);
-      toast({ title: "Failed to fetch work orders", variant: "destructive" });
-    }
-  };
-
-  // Fetch Dependencies
-  const fetchDependencies = async () => {
-    try {
-      // Fetch Vehicles
-      const vehiclesRes = await filterVehicles({
-        attributes: {},
-        pagination: { perPage: "100", page: "1" },
-      });
-      const vehiclesData = await vehiclesRes.json();
-      if (vehiclesData?.vehicles) setVehicles(vehiclesData.vehicles);
-
-      // Fetch Users (Labors)
-      const usersRes = await filterUsers({
-        attributes: {},
-        pagination: { perPage: "100", page: "1" },
-      });
-      // users service returns raw response or data? checking stock page it says response.json()
-      // checking users service usage in stock/vehicles page:
-      // const response = await filterEntities(payload); if(response.ok) const data = await response.json(); setClients(data.users);
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        if (usersData?.users) setUsers(usersData.users);
-      }
-
-      // Fetch Stocks (Materials)
-      const stocksRes = await filterStocks({
-        attributes: {},
-        pagination: { perPage: "100", page: "1" },
-      });
-      const stocksData = await stocksRes.json();
-      if (stocksData?.stockItems) setStocks(stocksData.stockItems);
-    } catch (error) {
-      console.error("Failed to fetch dependencies", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchWorkOrders();
-  }, [currentPage, itemsPerPage]);
-
-  useEffect(() => {
-    fetchDependencies();
-  }, []);
-
-  useEffect(() => {
-    if (!isFormOpen) {
-      setEditingItem(null);
-      setFormData(new WorkOrderEntity());
-    }
-  }, [isFormOpen]);
-
-  const handleFormInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { id, value } = e.target;
+  const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const { entityAttrName } = e.target.dataset;
     setFormData((prev) => ({
       ...prev,
-      [id]: value,
+      ...(entityAttrName ? { [entityAttrName]: value } : {}),
     }));
   };
-
-  const handleVehicleChange = (value: string) => {
-    const selectedVehicle = vehicles.find((v) => v._id?.toString() === value);
-    setFormData((prev) => ({
-      ...prev,
-      vehicle: selectedVehicle,
-    }));
-  };
-
-  const handleLaborToggle = (user: User) => {
-    setFormData((prev) => {
-      const labors = prev.labors || [];
-      const exists = labors.find((l) => l._id === user._id);
-      if (exists) {
-        return { ...prev, labors: labors.filter((l) => l._id !== user._id) };
-      } else {
-        return { ...prev, labors: [...labors, user] };
-      }
+  const { entityForms } = buildEntityForms({
+    translation,
+    handleFormInputChange: handleFormInputChange,
+  });
+  const fetchElements = buildFetchElements<IEntity>({
+    setElements,
+    setTotalPages,
+    datasetFetchMethod,
+    datasetFetchResponseItemsAttr,
+  });
+  useEffect(() => {
+    fetchElements({
+      itemsPerPage,
+      currentPage,
     });
-  };
-
-  const handleMaterialToggle = (stock: Stock) => {
-    setFormData((prev) => {
-      const materials = prev.materials || [];
-      const exists = materials.find((m) => m._id === stock._id);
-      if (exists) {
-        return {
-          ...prev,
-          materials: materials.filter((m) => m._id !== stock._id),
-        };
-      } else {
-        return { ...prev, materials: [...materials, stock] };
-      }
-    });
-  };
-
-  const handleAddNewClick = () => {
-    setEditingItem(null);
-    setFormData(new WorkOrderEntity());
-    setIsFormOpen(true);
-  };
-
-  const handleEditClick = (item: IWorkOrder) => {
-    setEditingItem(item);
-    // Ensure arrays are initialized
-    setFormData({
-      ...item,
-      labors: item.labors || [],
-      materials: item.materials || [],
-      // Handle date formatting for input type="datetime-local"
-      // Expected format: YYYY-MM-DDThh:mm
-      startTime: item.startTime
-        ? new Date(item.startTime).toISOString().slice(0, 16)
-        : undefined,
-      endTime: item.endTime
-        ? new Date(item.endTime).toISOString().slice(0, 16)
-        : undefined,
-    });
-    setIsFormOpen(true);
-  };
-
-  const handleSave = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      const payload = { ...formData };
-
-      // Ensure relations are passed as array of objects with _id (which they are)
-      // Ensure vehicle is passed as object with _id (which it is)
-
-      if (editingItem && editingItem._id) {
-        await updateWorkOrder(payload);
-        toast({ title: "Work order updated successfully" });
-      } else {
-        await createWorkOrder(payload);
-        toast({ title: "Work order created successfully" });
-      }
-
-      setIsFormOpen(false);
-      fetchWorkOrders();
-    } catch (error) {
-      console.error("Failed to save work order", error);
-      toast({ title: "Failed to save work order", variant: "destructive" });
-    }
-  };
-
-  const handleDeleteClick = (item: IWorkOrder) => {
-    setItemToDelete(item);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!itemToDelete?._id) return;
-    try {
-      await deleteWorkOrder(itemToDelete._id);
-      toast({ title: "Work order deleted successfully" });
-      setIsDeleteDialogOpen(false);
-      setItemToDelete(null);
-      fetchWorkOrders();
-    } catch (error) {
-      console.error("Failed to delete work order", error);
-      toast({ title: "Failed to delete work order", variant: "destructive" });
-    }
-  };
-
-  // const columns = [
-  //   { key: "notes", label: "Notes" },
-  //   { key: "estimatedDuration", label: "Durée Est." },
-  //   {
-  //     key: "vehicle",
-  //     label: "Véhicule",
-  //     render: (row: IWorkOrder) =>
-  //       row.vehicle
-  //         ? `${row.vehicle.make} ${row.vehicle.model} (${row.vehicle.plateNumber})`
-  //         : "-",
-  //   },
-  //   {
-  //     key: "startTime",
-  //     label: "Début",
-  //     render: (row: IWorkOrder) =>
-  //       row.startTime ? new Date(row.startTime).toLocaleDateString() : "-",
-  //   },
-  //   {
-  //     key: "labors",
-  //     label: "Main d'œuvre",
-  //     render: (row: IWorkOrder) =>
-  //       row.labors?.length ? row.labors.length : "0",
-  //   },
-  //   {
-  //     key: "materials",
-  //     label: "Pièces",
-  //     render: (row: IWorkOrder) =>
-  //       row.materials?.length ? row.materials.length : "0",
-  //   },
-  // ];
+  }, [formData?._id, currentPage, itemsPerPage]);
+  // end ElementsPage states and handlers setup
 
   return (
     <SidebarProvider>
@@ -420,31 +749,203 @@ function WorkOrdersPage() {
           <div className="flex items-center justify-between space-y-2">
             <div>
               <h1 className="text-3xl font-headline font-bold tracking-tight">
-                Ordres de Réparation
+                {translation("workOrders.page.pageTitle")}
               </h1>
               <p className="text-muted-foreground">
-                Gérez tous les ordres de réparation.
+                {translation("workOrders.page.pageSubtitle")}
               </p>
             </div>
-            <Button onClick={handleAddNewClick}>
+            <Button
+              onClick={() => {
+                setFormData({ ...itemInitState, _id: -1 });
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
-              Ajouter une réparation
+              {translation("common.addItemButton")}
             </Button>
           </div>
 
+          <Dialog
+            open={
+              formData?._id === -1 ||
+              parseInt(formData?._id?.toString() || "0") >= 0
+            }
+            onOpenChange={() => {
+              setFormData(itemInitState);
+            }}
+          >
+            <DialogContent className="sm:max-w-xl">
+              <DialogHeader>
+                <DialogTitle>
+                  {formData?._id !== -1
+                    ? translation("common.editItemDialogTitle")
+                    : translation("common.addItemDialogTitle")}
+                </DialogTitle>
+                <DialogDescription>
+                  {formData?._id !== -1
+                    ? translation("common.editItemDialogSubtitle")
+                    : translation("common.addItemDialogSubtitle")}
+                </DialogDescription>
+              </DialogHeader>
+              <form
+                onSubmit={(event) => {
+                  handleSaveEntity({
+                    formData,
+                    createEntityService: createEntityWorkOrderService,
+                    updateEntityService: updateEntityWorkOrderService,
+                  })(event);
+
+                  setFormData(itemInitState);
+                }}
+              >
+                <div
+                  // className="grid
+                  // grid-cols-2
+                  //  gap-4 py-4"
+                  // className="grid
+                  // grid-cols-6
+                  //  gap-4 py-4"
+                  className="grid grid-cols-4 gap-4 py-4"
+                >
+                  {Object.entries(entityForms.editItemAttributes).map(
+                    ([inputKeyName, inputComponents]) => {
+                      const value = formData?.[
+                        inputComponents.input
+                          .dataEntityAttrName as keyof IEntity
+                      ] as unknown as any;
+
+                      return (
+                        <div
+                          className="col-span-2 space-y-2"
+                          key={inputKeyName}
+                        >
+                          {inputComponents.label.Render({})}
+
+                          {inputComponents.input.Render({
+                            // value: formData?.[
+                            //   inputComponents.input
+                            //     .dataEntityAttrName as keyof IEntity
+                            // ] as unknown as string | number | undefined | IEntityUser[] | IEntityVehicule[] | IEntityStock[] | IEntity[],
+                            value,
+                            onChange: handleFormInputChange,
+                          })}
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setFormData(itemInitState)}
+                  >
+                    {translation("common.cancelText")}
+                  </Button>
+                  <Button type="submit">
+                    {translation("common.saveText")}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <AlertDialog
+            open={itemToDelete?._id ? true : false}
+            onOpenChange={(open) => !open && setItemToDelete(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {translation("common.alertDeleteItemTitle")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {translation("common.alertDeleteItemDescription")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  onClick={() => {
+                    setItemToDelete(null);
+                  }}
+                >
+                  {translation("common.cancelText")}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    const formDataDto = {
+                      ...itemToDelete,
+                      status: SttsEnum.TO_BE_DELETED,
+                      ownerString: undefined,
+                    };
+
+                    handleSaveEntity({
+                      formData: formDataDto,
+                      createEntityService: createEntityWorkOrderService,
+                      updateEntityService: updateEntityWorkOrderService,
+                    })()?.finally(() => {
+                      fetchElements({
+                        currentPage,
+                      });
+
+                      // close the dialog
+                      setFormData(itemInitState);
+                    });
+                  }}
+                >
+                  {translation("common.alertDeleteItemConfirm")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           <Card>
             <CardHeader>
-              <CardTitle>Liste des réparations</CardTitle>
+              <CardTitle>
+                {translation("workOrders.page.itemsTabeTitle")}
+              </CardTitle>
               <CardDescription>
-                Consultez et gérez vos ordres de réparation.
+                {translation("workOrders.page.itemsTabeSubtitle")}
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="space-y-4">
+                <div className="w-full">
+                  <input
+                    id="formInputText7Search1"
+                    type="text"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+                <div className="w-full p-2">
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => setItemsPerPage(Number(value))}
+                  >
+                    <SelectTrigger id="itemsPerPageSelectInputId">
+                      <SelectValue placeholder="Items per page" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <TableSection
-                elements={elements.map((item) => {
-                  const { vehicle, labors, materials } = item;
+                // elements={elements}
+                elements={(elements || []).map((elementsItem: IEntity) => {
+                  const { vehicle, labors, materials } = elementsItem;
                   return {
-                    ...item,
+                    ...elementsItem,
                     vehicleString: vehicle
                       ? formatEntityRecursive(vehicle)
                       : "-",
@@ -458,201 +959,37 @@ function WorkOrdersPage() {
                         : "-",
                   };
                 })}
-                handleEditClick={handleEditClick}
-                handleDeleteClick={handleDeleteClick}
-                newItemInitialState={newItemInitialState}
-                columns={Object.keys(newItemInitialState).filter(
-                  (key) => !["vehicle", "labors", "materials"].includes(key),
-                )}
+                handleEditClick={(item: IEntity) => {
+                  setFormData(item);
+                }}
+                handleDeleteClick={setItemToDelete}
+                newItemInitialState={itemInitState}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={totalPages}
                 searchTerm={searchTerm}
+                columns={Object.keys(itemInitState).filter(
+                  (key) => !["password"].includes(key),
+                )}
               />
+
+              {/* Debug: item details */}
+              {/* {elements.map((entityItem) => (
+                <div key={entityItem._id}>
+                  {Object.keys(entityItem).map((key) => (
+                    <div key={key}>
+                      {key}: {entityItem[key as keyof IEntity]}
+                    </div>
+                  ))}
+                </div>
+              ))} */}
             </CardContent>
           </Card>
-
-          {/* Create/Edit Dialog */}
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingItem
-                    ? "Modifier la réparation"
-                    : "Nouvelle réparation"}
-                </DialogTitle>
-                <DialogDescription>
-                  Remplissez les détails ci-dessous.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSave} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="vehicle">Véhicule</Label>
-                    <Select
-                      value={formData.vehicle?._id?.toString()}
-                      onValueChange={handleVehicleChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un véhicule" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {vehicles.map((v) => (
-                          <SelectItem
-                            key={v._id}
-                            value={v._id?.toString() || ""}
-                          >
-                            {v.make} {v.model} ({v.plateNumber})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="estimatedDuration">Durée Estimée</Label>
-                    <Input
-                      id="estimatedDuration"
-                      value={formData.estimatedDuration || ""}
-                      onChange={handleFormInputChange}
-                      placeholder="ex: 2h 30m"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="startTime">Date de début</Label>
-                    <Input
-                      id="startTime"
-                      type="datetime-local"
-                      value={formData.startTime || ""}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endTime">Date de fin</Label>
-                    <Input
-                      id="endTime"
-                      type="datetime-local"
-                      value={formData.endTime || ""}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes || ""}
-                    onChange={handleFormInputChange}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Main d'œuvre (Labors)</Label>
-                    <Card className="h-40">
-                      <ScrollArea className="h-full p-4">
-                        <div className="space-y-2">
-                          {users.map((user) => (
-                            <div
-                              key={user._id}
-                              className="flex items-center space-x-2"
-                            >
-                              <Checkbox
-                                id={`labor-${user._id}`}
-                                checked={formData.labors?.some(
-                                  (l) => l._id === user._id,
-                                )}
-                                onCheckedChange={() => handleLaborToggle(user)}
-                              />
-                              <label
-                                htmlFor={`labor-${user._id}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                              >
-                                {user.givenName} {user.familyName}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </Card>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Pièces (Matériels)</Label>
-                    <Card className="h-40">
-                      <ScrollArea className="h-full p-4">
-                        <div className="space-y-2">
-                          {stocks.map((stock) => (
-                            <div
-                              key={stock._id}
-                              className="flex items-center space-x-2"
-                            >
-                              <Checkbox
-                                id={`material-${stock._id}`}
-                                checked={formData.materials?.some(
-                                  (m) => m._id === stock._id,
-                                )}
-                                onCheckedChange={() =>
-                                  handleMaterialToggle(stock)
-                                }
-                              />
-                              <label
-                                htmlFor={`material-${stock._id}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                              >
-                                {stock.name} ({stock.quantity})
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </Card>
-                  </div>
-                </div>
-
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsFormOpen(false)}
-                  >
-                    Annuler
-                  </Button>
-                  <Button type="submit">Enregistrer</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          {/* Delete Alert Dialog */}
-          <AlertDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Cette action ne peut pas être annulée. Cela supprimera
-                  définitivement cet ordre de réparation.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmDelete}>
-                  Continuer
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </main>
       </SidebarInset>
     </SidebarProvider>
   );
 }
 
-export default withAuth(WorkOrdersPage);
+export default withAuth(ElementsPage);

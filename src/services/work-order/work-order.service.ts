@@ -1,21 +1,8 @@
 import { API_URL } from "@/app/consts";
-
-export class FilterPaginationParamsDto {
-  perPage?: string = "10";
-  offset?: string = "0";
-  page?: string = "1";
-  sortField?: string = "_id";
-  sortOrder?: string = "asc";
-}
-
-export type FilterEntitiesPayloadDto = {
-  attributes: Record<string, string | undefined | null | number | boolean>;
-  pagination?: FilterPaginationParamsDto;
-  wildcard?: string;
-};
+import { DatasetFilterDto, fetchWrapper } from "../commun";
 
 export const filterWorkOrders = async (
-  filterEntitiesPayloadDto: FilterEntitiesPayloadDto,
+  filterEntitiesPayloadDto: DatasetFilterDto,
 ) => {
   return await fetch(`${API_URL}/filterWorkOrders`, {
     method: "POST",
@@ -28,34 +15,33 @@ export const filterWorkOrders = async (
 };
 
 export const createWorkOrder = async (
-  workOrderPayloadDto: Record<
+  vehiclePayloadDto: Record<
     string,
-    string | number | boolean | undefined | null | any
+    string | number | boolean | undefined | null
   >,
 ) => {
-  return await fetch(`${API_URL}/createWorkOrder`, {
+  const response = await fetch(`${API_URL}/createWorkOrder`, {
     method: "POST",
-    body: JSON.stringify(workOrderPayloadDto),
+    body: JSON.stringify(vehiclePayloadDto),
     headers: {
       Authorization: `Bearer ${localStorage.getItem("access_token")}`,
       "Content-Type": "application/json",
     },
   });
+  const data = await response.json();
+  return data;
 };
 
 export const updateWorkOrder = async (
-  workOrderDetailsPayloadDto: Record<
+  vehicleDetailsPayloadDto: Record<
     string,
-    string | number | boolean | undefined | null | any
+    string | number | boolean | undefined | null
   >,
 ) => {
-  return await fetch(`${API_URL}/updateWorkOrder`, {
+  return await fetchWrapper({
+    body: JSON.stringify(vehicleDetailsPayloadDto),
     method: "POST",
-    body: JSON.stringify(workOrderDetailsPayloadDto),
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      "Content-Type": "application/json",
-    },
+    url: `${API_URL}/updateWorkOrder`,
   });
 };
 

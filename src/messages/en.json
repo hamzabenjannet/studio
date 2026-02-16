@@ -1,7 +1,56 @@
 {
   "common": {
     "actions": "Actions",
-    "notifications": "Notifications"
+    "addItemButton": "Add",
+    "notifications": "Notifications",
+
+    "alertDeleteItem": "Are you sure you want to delete?",
+    "alertDeleteItemTitle": "Delete entity",
+    "alertDeleteItemDescription": "This action is irreversible. This will be scheduled for permanent deletion.",
+    "alertDeleteItemConfirm": "Delete",
+    "cancelText": "Cancel",
+    "saveText": "Save",
+    "addItemDialogTitle": "Add a new item",
+    "addItemDialogSubtitle": "Fill in the information below.",
+    "editItemDialogTitle": "Edit the item",
+    "editItemDialogSubtitle": "Update the entity information.",
+    "itemSttsLabel": "Status",
+    "itemSelectSttsPlaceholder": "Select Status",
+    "selectOwner": "Select Owner",
+    "itemSelectItemPlaceholder": "Select Item"
+  },
+  "entityForms": {
+    "editItemAttributes": {
+      "givenName": "Given Name",
+      "familyName": "Family Name",
+      "email": "Email",
+      "password": "Password",
+      "phone": "Phone",
+      "address": "Address",
+      "status": "Status",
+
+      "make": "Make",
+      "model": "Model",
+      "year": "Year",
+      "plateNumber": "Plate Number",
+      "vin": "VIN",
+      "owner": "Owner",
+
+      "name": "Name",
+      "sku": "SKU",
+      "quantity": "Quantity",
+      "buyPrice": "Buy Price",
+      "sellPrice": "Sell Price",
+      "availableInInventory": "Available in Inventory",
+      "notes": "Notes",
+
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "estimatedDuration": "Estimated Duration",
+      "vehicle": "Vehicle",
+
+      "labors": "Labor"
+    }
   },
   "Header": {
     "searchPlaceholder": "Search...",
@@ -26,7 +75,6 @@
   "usersPage": {
     "pageTitle": "users",
     "pageSubtitle": "Manage your users",
-    "addItemButton": "Add",
     "itemsTabeTitle": "users List",
     "itemsTabeSubtitle": "View and manage all registered users.",
     "itemsTabeColumnNameAttrName": "Name",
@@ -38,23 +86,60 @@
     "itemsTabeColumnNameAttrActionsDropdownButtonEdit": "Edit",
     "itemsTabeColumnNameAttrActionsDropdownButtonDelete": "Delete",
     "itemsTabeColumnNameAttrActionsDropdownButtonViewCars": "View Cars",
-    "alertDeleteItem": "Are you sure you want to delete?",
-    "alertDeleteItemTitle": "Delete user",
-    "alertDeleteItemDescription": "This action is irreversible. This will be permanently deleted.",
-    "alertDeleteItemConfirm": "Delete",
-    "cancelText": "Cancel",
-    "saveText": "Save",
-    "addItemDialogTitle": "Add a new user",
-    "addItemDialogSubtitle": "Fill in the information below.",
-    "editItemDialogTitle": "Edit the user",
-    "editItemDialogSubtitle": "Update the user information.",
-    "itemAttrInputText1Label": "Given Name",
-    "itemAttrInputText2Label": "Family Name",
-    "itemAttrEmailLabel": "Email",
-    "itemAttrPasswordLabel": "Password",
-    "itemAttrPhoneLabel": "Phone",
-    "itemAttrAddressLabel": "Address",
-    "itemStatusLabel": "Status",
     "itemSelectStatusPlaceholder": "Select Status"
+  },
+  "users": {
+    "page": {
+      "pageTitle": "users",
+      "pageSubtitle": "Manage your users",
+      "itemsTabeTitle": "users List",
+      "itemsTabeSubtitle": "View and manage all registered users.",
+      "itemsTabeColumnNameAttrName": "Name",
+      "itemsTabeColumnNameAttrEmail": "Email",
+      "itemsTabeColumnNameAttrPhone": "Phone",
+      "itemsTabeColumnNameAttrAddress": "Address",
+      "itemsTabeColumnNameAttrStatus": "Status",
+      "itemsTabeColumnNameAttrActions": "Actions",
+      "itemsTabeColumnNameAttrActionsDropdownButtonEdit": "Edit",
+      "itemsTabeColumnNameAttrActionsDropdownButtonDelete": "Delete",
+      "itemsTabeColumnNameAttrActionsDropdownButtonViewCars": "View Cars",
+      "itemSelectStatusPlaceholder": "Select Status"
+    }
+  },
+  "vehicles": {
+    "page": {
+      "pageTitle": "Vehicules",
+      "pageSubtitle": "Manage your Vehicules",
+      "itemsTabeTitle": "Vehicules List",
+      "itemsTabeSubtitle": "View and manage all registered Vehicules.",
+      "itemsTabeColumnNameAttrName": "Name",
+      "itemsTabeColumnNameAttrEmail": "Email",
+      "itemsTabeColumnNameAttrPhone": "Phone",
+      "itemsTabeColumnNameAttrAddress": "Address",
+      "itemsTabeColumnNameAttrStatus": "Status",
+      "itemsTabeColumnNameAttrActions": "Actions",
+      "itemsTabeColumnNameAttrActionsDropdownButtonEdit": "Edit",
+      "itemsTabeColumnNameAttrActionsDropdownButtonDelete": "Delete",
+      "itemsTabeColumnNameAttrActionsDropdownButtonViewCars": "View Cars",
+      "itemSttsLabel": "Status",
+      "itemSelectStatusPlaceholder": "Select Status",
+      "itemSelectSttsPlaceholder": "Select Status"
+    }
+  },
+  "stock": {
+    "page": {
+      "pageTitle": "Stock",
+      "pageSubtitle": "Manage your Stock",
+      "itemsTabeTitle": "Stock List",
+      "itemsTabeSubtitle": "View and manage all registered Stock."
+    }
+  },
+  "workOrders": {
+    "page": {
+      "pageTitle": "Work Orders",
+      "pageSubtitle": "Manage your Work Orders",
+      "itemsTabeTitle": "Work Orders List",
+      "itemsTabeSubtitle": "View and manage all registered Work Orders."
+    }
   }
 }

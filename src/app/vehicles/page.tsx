@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TableSection } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -42,259 +41,541 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
+
+import "nextjs-reusable-table/dist/index.css";
+import { filterEntities as filterEntitiesUsersService } from "@/services/users/users.service";
+import { IEntity as IEntityUser } from "@/app/users/page";
 
 import {
-  createVehicle,
-  deleteVehicle,
-  filterVehicles,
-  FilterEntitiesPayloadDto,
-  updateVehicle,
+  createVehicle as createEntityVehiclesService,
+  filterVehicles as datasetFetchMethod,
+  updateVehicle as updateEntityVehiclesService,
 } from "@/services/vehicles/vehicles.service";
-import { filterEntities } from "@/services/users/users.service";
-import { toast } from "@/hooks/use-toast";
-import { StatusEnum } from "@/enums/status.enum";
 
-interface IEntity {
-  _id?: number | string | undefined;
+import { StatusEnum as SttsEnum } from "@/enums/status.enum";
+import { TableSection } from "@/components/ui/table";
+
+import {
+  buildFetchElements,
+  buildItemInitState,
+  handleSaveEntity,
+  IBaseEntity,
+} from "@/services/commun";
+
+import { Entity as UserEntity } from "@/app/users/page";
+
+export const entityName = "vehicle";
+export const entityPluralName = "vehicles";
+export const datasetFetchResponseItemsAttr = "vehicles";
+
+export interface IEntity extends IBaseEntity {
   make?: string | undefined;
   model?: string | undefined;
   year?: string | undefined;
   plateNumber?: string | undefined;
   vin?: string | undefined;
-  owner?: User | number | string | undefined; // Allow string for display, User/number for logic
-  // ownerString?: string | undefined; // Allow string for display, User/number for logic
-  status?: StatusEnum | undefined;
-  // _originalOwner?: User | undefined; // Helper for frontend logic
-}
-
-interface User {
-  _id?: number | string | undefined;
-  givenName?: string;
-  familyName?: string;
+  owner?: IEntityUser | number | string | undefined;
+  ownerString?: string | undefined;
 }
 
 export class Entity implements IEntity {
-  _id?: number | string | undefined = undefined;
+  _id: number = -2;
   make?: string | undefined = undefined;
   model?: string | undefined = undefined;
   year?: string | undefined = undefined;
   plateNumber?: string | undefined = undefined;
   vin?: string | undefined = undefined;
-  owner?: User | number | string | undefined = undefined;
+  owner?: IEntityUser | number | string | undefined = undefined;
   ownerString?: string | undefined = undefined;
-  status?: StatusEnum | undefined = StatusEnum.ACTIVE;
+  status?: SttsEnum | undefined = SttsEnum.ACTIVE;
   createdAt?: string | undefined = undefined;
   archivedAt?: string | undefined = undefined;
 }
 
-// Mock data removed
-const statusOptions: string[] = ["active", "in-repair", "archived", "sold"];
+export const itemInitState = buildItemInitState<IEntity>({
+  EntityClass: Entity,
+});
 
-const newItemInitialState: IEntity = Object.fromEntries(
-  Object.entries(new Entity()).map(([key, value]) => [key, value]),
-) as unknown as IEntity;
+export const buildEntityForms = ({
+  translation = (key: string) => key,
+  handleFormInputChange = ({}: Record<string, any>) => {},
+}: {
+  translation?: (key: string) => string;
+  handleFormInputChange?: (event: any) => void;
+}) => {
+  const entityForms = {
+    editItemAttributes: {
+      make: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.make")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "make",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="make"
+                type="text"
+                placeholder="Renault"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="make"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      model: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.model")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "model",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="model"
+                type="text"
+                placeholder="Clio"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="model"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      year: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.year")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "year",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="year"
+                type="text"
+                placeholder="2020"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="year"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      plateNumber: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.plateNumber")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "plateNumber",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="plateNumber"
+                type="text"
+                placeholder="AB-123-CD"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="plateNumber"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      vin: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.vin")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "vin",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="vin"
+                type="text"
+                placeholder="VF123ABC..."
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="vin"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      status: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.status")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "select",
+          dataEntityAttrName: "status",
+          Render: ({
+            props,
+            value = "",
+          }: {
+            props?: React.ComponentProps<typeof Select>;
+            value?: string | number | undefined;
+          }) => {
+            const selectOptions = Object.values(SttsEnum);
+
+            return (
+              <Select
+                {...props}
+                value={(value === null ? "" : value) as string}
+                onValueChange={(value) => {
+                  handleFormInputChange?.({
+                    target: {
+                      value,
+                      dataset: {
+                        entityAttrName: "status",
+                      },
+                    },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>);
+                }}
+                data-entity-attr-name="status"
+              >
+                <SelectTrigger id="status">
+                  <SelectValue
+                    placeholder={translation(
+                      "usersPage.itemSelectStatusPlaceholder",
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectOptions.map((mapItemValue) => (
+                    <SelectItem
+                      key={`status_${mapItemValue}`}
+                      value={mapItemValue}
+                    >
+                      {mapItemValue}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            );
+          },
+        },
+      },
+      viewOwner: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.owner")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "owner",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            const [preview, setPreview] = useState<boolean>(false);
+
+            return (
+              <div className="space-y-2">
+                <Button type="button" onClick={() => setPreview(!preview)}>
+                  {/* {"view"} */}
+                  {preview ? "hide" : "view"}
+                </Button>
+                {!preview ? null : (
+                  <p className="text-sm text-gray-500 overflow-scroll whitespace-nowrap h-20 overflow-auto">
+                    {JSON.stringify(value)}
+                  </p>
+                )}
+              </div>
+            );
+          },
+        },
+      },
+      owner: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("common.selectOwner")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "select",
+          dataEntityAttrName: "owner",
+          Render: ({
+            props,
+            value = "",
+          }: {
+            props?: React.ComponentProps<typeof Select>;
+            value?: string | number | undefined | UserEntity;
+          }) => {
+            const [selectOptions, setSelectOptions] = useState<UserEntity[]>(
+              [],
+            );
+
+            const fillSelectOptions = async () => {
+              const response = await filterEntitiesUsersService({
+                attributes: {},
+                pagination: {
+                  perPage: "99999999",
+                },
+              });
+
+              const { users }: { users: UserEntity[] } = await response.json();
+
+              setSelectOptions(users.map((item: UserEntity) => item));
+            };
+            React.useEffect(() => {
+              fillSelectOptions();
+            }, [filterEntitiesUsersService]);
+
+            const ownerId =
+              selectOptions.find((UserItem: UserEntity) => {
+                return (
+                  UserItem._id?.toString() ===
+                  (value as UserEntity)?._id?.toString()
+                );
+              })?._id ?? "";
+
+            return (
+              <Select
+                {...props}
+                value={ownerId.toString()}
+                onValueChange={(onValueChangeValue) => {
+                  const _onValueChangeValue = selectOptions.find(
+                    (UserItem: UserEntity) => {
+                      return (
+                        UserItem._id?.toString() ===
+                        (onValueChangeValue as string)
+                      );
+                    },
+                  );
+
+                  handleFormInputChange?.({
+                    target: {
+                      value: _onValueChangeValue,
+                      dataset: {
+                        entityAttrName: "owner",
+                      },
+                    },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>);
+                }}
+                data-entity-attr-name="owner"
+              >
+                <SelectTrigger id="owner">
+                  <SelectValue
+                    placeholder={translation(
+                      "entityForms.editItemAttributes.owner",
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectOptions.map((mapItemValue) => {
+                    if (!mapItemValue._id) {
+                      return null;
+                    }
+                    return (
+                      <SelectItem
+                        key={`owner_${mapItemValue._id}`}
+                        value={mapItemValue._id.toString()}
+                      >
+                        {mapItemValue.givenName} {mapItemValue.familyName}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            );
+          },
+        },
+      },
+    },
+    // editItemAttributes: {} as Record<string, any>,
+  };
+
+  return { entityForms };
+};
 
 function ElementsPage() {
+  // begin ElementsPage states and handlers setup
+  const translation = useTranslations();
   const [elements, setElements] = useState<IEntity[]>([] as IEntity[]);
-  const [clients, setClients] = useState<User[]>([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<IEntity | null>(null);
-  const [formData, setFormData] = useState<IEntity>(newItemInitialState);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [vehicleToDelete, setVehicleToDelete] = useState<IEntity | null>(null);
-
+  const [formData, setFormData] = useState<IEntity | undefined>(itemInitState);
+  const [itemToDelete, setItemToDelete] = useState<IEntity | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-
-  const fetchVehicles = async () => {
-    try {
-      const filterEntitiesPayloadDto: FilterEntitiesPayloadDto = {
-        attributes: {},
-        pagination: {
-          perPage: itemsPerPage.toString(),
-          page: currentPage.toString(),
-          sortField: "_id",
-          sortOrder: "desc",
-        },
-        wildcard: "true",
-      };
-      const response = await filterVehicles(filterEntitiesPayloadDto);
-      const data = await response.json();
-
-      if (!clients.length) {
-        // fetchClients(); // Don't block if clients fail, but good to try
-      }
-
-      if (!data?.vehicles) {
-        setElements([]);
-        return;
-      }
-
-      const mappedEntitiesUsers = data.vehicles.map((vehicle: IEntity) => ({
-        ...vehicle,
-      }));
-
-      setElements(mappedEntitiesUsers);
-
-      if (data?.pagination?.totalPages) {
-        setTotalPages(data.pagination.totalPages);
-      }
-    } catch (error) {
-      console.error("Failed to fetch vehicles", error);
-      toast({ title: "Failed to fetch vehicles", variant: "destructive" });
-    }
-  };
-
-  useEffect(() => {
-    fetchVehicles();
-  }, [currentPage, itemsPerPage]); // Add dependencies
-
-  const fetchClients = async () => {
-    try {
-      const payload: FilterEntitiesPayloadDto = {
-        attributes: {},
-        pagination: { perPage: "100", page: "1" },
-      };
-      const response = await filterEntities(payload);
-      if (response.ok) {
-        const data = await response.json();
-        setClients(data.users || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch clients", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchClients();
-  }, []);
-
-  useEffect(() => {
-    if (!isFormOpen) {
-      setEditingItem(null);
-      setFormData(newItemInitialState);
-    }
-  }, [isFormOpen]);
-
   const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
+    const { value } = e.target;
+    const { entityAttrName } = e.target.dataset;
     setFormData((prev) => ({
       ...prev,
-      [id]: value,
+      ...(entityAttrName ? { [entityAttrName]: value } : {}),
     }));
   };
-
-  const handleFormSelectChange = (
-    id: "owner" | "status",
-    value: string | number | StatusEnum | User | undefined,
-  ) => {
-    setFormData((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handleAddNewClick = () => {
-    setEditingItem(null);
-    setFormData(newItemInitialState);
-    setIsFormOpen(true);
-  };
-
-  const handleEditClick = (vehicle: IEntity) => {
-    const originalVehicle = {
-      ...vehicle,
-    };
-    setEditingItem(originalVehicle);
-    setFormData(originalVehicle);
-    setIsFormOpen(true);
-  };
-
-  const handleSaveVehicle = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      const payload: Record<string, any> = { ...formData };
-
-      if (editingItem && editingItem._id) {
-        const response = await updateVehicle({
-          ...payload,
-          ownerString: undefined,
-        } as unknown as Record<
-          string,
-          string | number | boolean | undefined | null
-        >);
-
-        const responseJson = await response.json();
-
-        console.debug("responseJson", responseJson);
-
-        const { message } = responseJson;
-
-        if (response.ok) {
-          toast({ title: message || "updated successfully" });
-          fetchVehicles();
-        } else {
-          toast({ title: "Failed to update vehicle", variant: "destructive" });
-        }
-      } else {
-        const response = await createVehicle(
-          payload as unknown as Record<
-            string,
-            string | number | boolean | undefined | null
-          >,
-        );
-
-        const responseJson = await response.json();
-        console.debug("responseJson", responseJson);
-        const { message } = responseJson;
-
-        if (response.ok) {
-          toast({ title: message || "created successfully" });
-          fetchVehicles();
-        } else {
-          toast({
-            title: message || "Failed to create item",
-            variant: "destructive",
-          });
-        }
-      }
-
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error("Error saving", error);
-      toast({ title: "Error saving", variant: "destructive" });
-    }
-  };
-
-  const handleDeleteClick = (vehicle: IEntity) => {
-    setVehicleToDelete(vehicle);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (vehicleToDelete && vehicleToDelete._id) {
-      try {
-        const response = await deleteVehicle(vehicleToDelete._id);
-        const { message } = await response.json();
-        if (response.ok) {
-          toast({ title: message || "Deleted successfully" });
-          fetchVehicles();
-        } else {
-          toast({
-            title: message || "Failed to delete item",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error("Error deleting item", error);
-        toast({
-          title: "Error deleting item",
-          variant: "destructive",
-        });
-      }
-    }
-    setIsDeleteDialogOpen(false);
-    setVehicleToDelete(null);
-  };
+  const { entityForms } = buildEntityForms({
+    translation,
+    handleFormInputChange: handleFormInputChange,
+  });
+  const fetchElements = buildFetchElements<IEntity>({
+    setElements,
+    setTotalPages,
+    datasetFetchMethod,
+    datasetFetchResponseItemsAttr,
+  });
+  useEffect(() => {
+    fetchElements({
+      itemsPerPage,
+      currentPage,
+    });
+  }, [formData?._id, currentPage, itemsPerPage]);
+  // end ElementsPage states and handlers setup
 
   return (
     <SidebarProvider>
@@ -305,165 +586,146 @@ function ElementsPage() {
           <div className="flex items-center justify-between space-y-2">
             <div>
               <h1 className="text-3xl font-headline font-bold tracking-tight">
-                Véhicules
+                {translation("vehicles.page.pageTitle")}
               </h1>
               <p className="text-muted-foreground">
-                Gérez la flotte de véhicules de vos clients.
+                {translation("vehicles.page.pageSubtitle")}
               </p>
             </div>
-            <Button onClick={handleAddNewClick}>
+            <Button
+              onClick={() => {
+                setFormData({ ...itemInitState, _id: -1 });
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
-              Ajouter un véhicule
+              {translation("common.addItemButton")}
             </Button>
           </div>
 
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogContent className="sm:max-w-2xl">
+          <Dialog
+            open={
+              formData?._id === -1 ||
+              parseInt(formData?._id?.toString() || "0") >= 0
+            }
+            onOpenChange={() => {
+              setFormData(itemInitState);
+            }}
+          >
+            <DialogContent className="sm:max-w-xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingItem
-                    ? "Modifier le véhicule"
-                    : "Ajouter un nouveau véhicule"}
+                  {formData?._id !== -1
+                    ? translation("common.editItemDialogTitle")
+                    : translation("common.addItemDialogTitle")}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingItem
-                    ? "Mettez à jour les informations du véhicule."
-                    : "Remplissez les informations ci-dessous pour ajouter un nouveau véhicule."}
+                  {formData?._id !== -1
+                    ? translation("common.editItemDialogSubtitle")
+                    : translation("common.addItemDialogSubtitle")}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSaveVehicle}>
-                <div className="grid grid-cols-2 gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="make">Marque</Label>
-                    <Input
-                      id="make"
-                      placeholder="Renault"
-                      value={formData.make}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="model">Modèle</Label>
-                    <Input
-                      id="model"
-                      placeholder="Clio"
-                      value={formData.model}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="year">Année</Label>
-                    <Input
-                      id="year"
-                      type="text"
-                      placeholder="2023"
-                      value={formData.year}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="plateNumber">Immatriculation</Label>
-                    <Input
-                      id="plateNumber"
-                      placeholder="AB-123-CD"
-                      value={formData.plateNumber}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    <Label htmlFor="vin">VIN</Label>
-                    <Input
-                      id="vin"
-                      placeholder="VF123ABC..."
-                      value={formData.vin}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="owner">Propriétaire</Label>
-                    <Select
-                      value={(() => {
-                        const { _id: ownedIdStr = "" } =
-                          (formData.owner as User | undefined) || {};
-                        return String(ownedIdStr);
-                      })()}
-                      onValueChange={(value) => {
-                        const owner = clients.find(
-                          (client) => Number(client._id) === Number(value),
-                        );
-                        return handleFormSelectChange("owner", owner);
-                      }}
-                    >
-                      <SelectTrigger id="owner">
-                        <SelectValue placeholder="Sélectionnez un propriétaire" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.map((client) => (
-                          <SelectItem key={client._id} value={`${client._id}`}>
-                            {client.givenName} {client.familyName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Statut</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) =>
-                        handleFormSelectChange(
-                          "status",
-                          value as IEntity["status"] as StatusEnum,
-                        )
-                      }
-                    >
-                      <SelectTrigger id="status">
-                        <SelectValue placeholder="Sélectionnez un statut" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <form
+                onSubmit={(event) => {
+                  handleSaveEntity({
+                    formData,
+                    createEntityService: createEntityVehiclesService,
+                    updateEntityService: updateEntityVehiclesService,
+                  })(event);
+
+                  setFormData(itemInitState);
+                }}
+              >
+                <div
+                  // className="grid
+                  // grid-cols-2
+                  //  gap-4 py-4"
+                  // className="grid
+                  // grid-cols-6
+                  //  gap-4 py-4"
+                  className="grid grid-cols-4 gap-4 py-4"
+                >
+                  {Object.entries(entityForms.editItemAttributes).map(
+                    ([inputKeyName, inputComponents]) => {
+                      return (
+                        <div
+                          className="col-span-2 space-y-2"
+                          key={inputKeyName}
+                        >
+                          {inputComponents.label.Render({})}
+
+                          {inputComponents.input.Render({
+                            value: formData?.[
+                              inputComponents.input
+                                .dataEntityAttrName as keyof IEntity
+                            ] as string | number | undefined,
+
+                            onChange: handleFormInputChange,
+                          })}
+                        </div>
+                      );
+                    },
+                  )}
                 </div>
                 <DialogFooter>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsFormOpen(false)}
+                    onClick={() => setFormData(itemInitState)}
                   >
-                    Annuler
+                    {translation("common.cancelText")}
                   </Button>
-                  <Button type="submit">Sauvegarder</Button>
+                  <Button type="submit">
+                    {translation("common.saveText")}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
 
           <AlertDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
+            open={itemToDelete?._id ? true : false}
+            onOpenChange={(open) => !open && setItemToDelete(null)}
           >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  Êtes-vous sûr de vouloir supprimer?
+                  {translation("common.alertDeleteItemTitle")}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Cette action est irréversible. Le véhicule sera définitivement
-                  supprimé.
+                  {translation("common.alertDeleteItemDescription")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-                  Annuler
+                <AlertDialogCancel
+                  onClick={() => {
+                    setItemToDelete(null);
+                  }}
+                >
+                  {translation("common.cancelText")}
                 </AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmDelete}>
-                  Supprimer
+                <AlertDialogAction
+                  onClick={() => {
+                    const formDataDto = {
+                      ...itemToDelete,
+                      status: SttsEnum.TO_BE_DELETED,
+                      ownerString: undefined,
+                    };
+
+                    handleSaveEntity({
+                      formData: formDataDto,
+                      createEntityService: createEntityVehiclesService,
+                      updateEntityService: updateEntityVehiclesService,
+                    })()?.finally(() => {
+                      fetchElements({
+                        currentPage,
+                      });
+
+                      // close the dialog
+                      setFormData(itemInitState);
+                    });
+                  }}
+                >
+                  {translation("common.alertDeleteItemConfirm")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -471,9 +733,11 @@ function ElementsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Liste des véhicules</CardTitle>
+              <CardTitle>
+                {translation("vehicles.page.itemsTabeTitle")}
+              </CardTitle>
               <CardDescription>
-                Consultez et gérez tous les véhicules enregistrés.
+                {translation("vehicles.page.itemsTabeSubtitle")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -509,6 +773,7 @@ function ElementsPage() {
               </div>
 
               <TableSection
+                // elements={elements}
                 elements={(elements || []).map((vehicle: IEntity) => {
                   const { owner = undefined } = vehicle;
                   const ownerString = owner
@@ -522,17 +787,19 @@ function ElementsPage() {
                     ownerString,
                   };
                 })}
-                handleEditClick={handleEditClick}
-                handleDeleteClick={handleDeleteClick}
-                newItemInitialState={newItemInitialState}
-                columns={Object.keys(newItemInitialState).filter(
-                  (key) => !["owner"].includes(key),
-                )}
+                handleEditClick={(item: IEntity) => {
+                  setFormData(item);
+                }}
+                handleDeleteClick={setItemToDelete}
+                newItemInitialState={itemInitState}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={totalPages}
                 searchTerm={searchTerm}
+                columns={Object.keys(itemInitState).filter(
+                  (key) => !["owner"].includes(key),
+                )}
               />
 
               {/* Debug: item details */}

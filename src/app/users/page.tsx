@@ -44,77 +44,96 @@ import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import "nextjs-reusable-table/dist/index.css";
+import { filterEntities as datasetFetchMethod } from "@/services/users/users.service";
 import {
-  filterEntities,
-  FilterEntitiesPayloadDto,
-} from "@/services/users/users.service";
-import { signup, updateItem } from "@/services/auth/auth.service";
-import { toast } from "@/hooks/use-toast";
-import { StatusEnum } from "@/enums/status.enum";
-import { TableSection } from "@/components/ui/table";
+  signup as createEntityUserService,
+  updateItem as updateEntityUserService,
+} from "@/services/auth/auth.service";
 
-interface IEntity {
-  _id?: number;
+import { StatusEnum as SttsEnum } from "@/enums/status.enum";
+
+import { TableSection } from "@/components/ui/table";
+import {
+  buildFetchElements,
+  buildItemInitState,
+  handleSaveEntity,
+  IBaseEntity,
+} from "@/services/commun";
+
+export const entityName = "user";
+export const entityPluralName = "users";
+export const datasetFetchResponseItemsAttr = "users";
+
+export interface IEntity extends IBaseEntity {
   givenName?: string;
   familyName?: string;
   email?: string;
   phone?: string;
-  status?: StatusEnum | undefined;
   password?: string;
   createdAt?: string;
   archivedAt?: string;
 }
 
 export class Entity implements IEntity {
-  _id: number = 0;
+  _id: number = -2;
   givenName?: string | undefined = undefined;
   familyName?: string | undefined = undefined;
   email?: string = undefined;
   phone?: string = undefined;
-  status?: StatusEnum | undefined = undefined;
+  status?: SttsEnum | undefined = SttsEnum.ACTIVE;
   password?: string | undefined = undefined;
   createdAt?: string | undefined = undefined;
   archivedAt?: string | undefined = undefined;
 }
 
-const newItemInitialState: IEntity = Object.fromEntries(
-  Object.entries(new Entity()).map(([key, value]) => [key, value]),
-) as unknown as IEntity;
+export const itemInitState = buildItemInitState<IEntity>({
+  EntityClass: Entity,
+});
 
-const entityForms = {
-  createNewItem: {
-    givenName: {
-      label: {
-        component: {
+export const buildEntityForms = ({
+  translation = (key: string) => key,
+  handleFormInputChange = ({}: Record<string, any>) => {},
+}: {
+  translation?: (key: string) => string;
+  handleFormInputChange?: (event: any) => void;
+}) => {
+  const entityForms = {
+    editItemAttributes: {
+      givenName: {
+        label: {
           Render: ({
             props,
-            translation,
           }: {
             props?: React.ComponentProps<typeof Label>;
-            translation?: (key: string) => string;
           }) => {
             return (
               <Label {...props}>
                 {translation
-                  ? translation("itemAttrInputText1Label")
-                  : "itemAttrInputText1Label"}
+                  ? translation("entityForms.editItemAttributes.givenName")
+                  : "itemAttrInputTextLabel"}
               </Label>
             );
           },
         },
-      },
-      input: {
-        type: "text",
-        component: {
+        input: {
+          type: "text",
           dataEntityAttrName: "givenName",
-          Render: (props?: React.ComponentProps<typeof Input>) => {
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
             return (
               <Input
                 id="givenName"
                 type="text"
                 placeholder="Jean"
-                value={props?.value === null ? "" : props?.value}
-                onChange={props?.onChange || (() => {})}
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
                 data-entity-attr-name="givenName"
                 {...props}
               />
@@ -122,79 +141,41 @@ const entityForms = {
           },
         },
       },
-    },
-    // formInputText1: {
-    //   label: {
-    //     component: {
-    //       Render: ({
-    //         props,
-    //         translation,
-    //       }: {
-    //         props?: React.ComponentProps<typeof Label>;
-    //         translation?: (key: string) => string;
-    //       }) => {
-    //         return (
-    //           <Label {...props}>
-    //             {translation
-    //               ? translation("itemAttrInputText1Label")
-    //               : "itemAttrInputText1Label"}
-    //           </Label>
-    //         );
-    //       },
-    //     },
-    //   },
-    //   input: {
-    //     type: "text",
-    //     component: {
-    //       dataEntityAttrName: "givenName",
-    //       Render: (props?: React.ComponentProps<typeof Input>) => {
-    //         return (
-    //           <Input
-    //             id="formInputText1"
-    //             type="text"
-    //             placeholder="Jean"
-    //             value={props?.value === null ? "" : props?.value}
-    //             onChange={props?.onChange || (() => {})}
-    //             data-entity-attr-name="givenName"
-    //             {...props}
-    //           />
-    //         );
-    //       },
-    //     },
-    //   },
-    // },
-    familyName: {
-      label: {
-        component: {
+      familyName: {
+        label: {
           Render: ({
             props,
-            translation,
           }: {
             props?: React.ComponentProps<typeof Label>;
-            translation?: (key: string) => string;
           }) => {
             return (
               <Label {...props}>
                 {translation
-                  ? translation("itemAttrInputText2Label")
-                  : "itemAttrInputText2Label"}
+                  ? translation("entityForms.editItemAttributes.familyName")
+                  : "itemAttrInputTextLabel"}
               </Label>
             );
           },
         },
-      },
-      input: {
-        type: "text",
-        component: {
+        input: {
+          type: "text",
           dataEntityAttrName: "familyName",
-          Render: (props?: React.ComponentProps<typeof Input>) => {
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
             return (
               <Input
                 id="familyName"
                 type="text"
                 placeholder="Dupont"
-                value={props?.value === null ? "" : props?.value}
-                onChange={props?.onChange || (() => {})}
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
                 data-entity-attr-name="familyName"
                 {...props}
               />
@@ -202,40 +183,42 @@ const entityForms = {
           },
         },
       },
-    },
-    email: {
-      label: {
-        component: {
+      email: {
+        label: {
           Render: ({
             props,
-            translation,
           }: {
             props?: React.ComponentProps<typeof Label>;
-            translation?: (key: string) => string;
           }) => {
             return (
               <Label {...props}>
                 {translation
-                  ? translation("itemAttrEmailLabel")
-                  : "itemAttrInputText3Label"}
+                  ? translation("entityForms.editItemAttributes.email")
+                  : "itemAttrInputTextLabel"}
               </Label>
             );
           },
         },
-      },
-      input: {
-        type: "text",
-        component: {
+        input: {
+          type: "text",
           dataEntityAttrName: "email",
-          Render: (props?: React.ComponentProps<typeof Input>) => {
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
             return (
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
                 placeholder="j.dupont@example.com"
-                value={props?.value === null ? "" : props?.value}
-                onChange={props?.onChange || (() => {})}
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
                 data-entity-attr-name="email"
                 {...props}
               />
@@ -243,40 +226,42 @@ const entityForms = {
           },
         },
       },
-    },
-    password: {
-      label: {
-        component: {
+      password: {
+        label: {
           Render: ({
             props,
-            translation,
           }: {
             props?: React.ComponentProps<typeof Label>;
-            translation?: (key: string) => string;
           }) => {
             return (
               <Label {...props}>
                 {translation
-                  ? translation("itemAttrPasswordLabel")
-                  : "itemAttrInputText4Label"}
+                  ? translation("entityForms.editItemAttributes.password")
+                  : "itemAttrInputTextLabel"}
               </Label>
             );
           },
         },
-      },
-      input: {
-        type: "text",
-        component: {
+        input: {
+          type: "text",
           dataEntityAttrName: "password",
-          Render: (props?: React.ComponentProps<typeof Input>) => {
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
             return (
               <Input
                 id="password"
                 type="password"
                 autoComplete="new-password"
                 placeholder="••••••••"
-                value={props?.value === null ? "" : props?.value}
-                onChange={props?.onChange || (() => {})}
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
                 data-entity-attr-name="password"
                 {...props}
               />
@@ -284,40 +269,40 @@ const entityForms = {
           },
         },
       },
-    },
-    phone: {
-      label: {
-        component: {
+      phone: {
+        label: {
           Render: ({
             props,
-            translation,
           }: {
             props?: React.ComponentProps<typeof Label>;
-            translation?: (key: string) => string;
           }) => {
             return (
               <Label {...props}>
                 {translation
-                  ? translation("itemAttrPhoneLabel")
-                  : "itemAttrInputText5Label"}
+                  ? translation("entityForms.editItemAttributes.phone")
+                  : "itemAttrInputTextLabel"}
               </Label>
             );
           },
         },
-      },
-      input: {
-        type: "text",
-        component: {
+        input: {
+          type: "text",
           dataEntityAttrName: "phone",
-          Render: (props?: React.ComponentProps<typeof Input>) => {
+          Render: ({
+            props,
+            value = "",
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+          }) => {
             return (
               <Input
                 id="phone"
                 type="text"
                 autoComplete="tel"
                 placeholder="0612345678"
-                value={props?.value === null ? "" : props?.value}
-                onChange={props?.onChange || (() => {})}
+                value={value === null ? "" : value}
+                onChange={handleFormInputChange || (() => {})}
                 data-entity-attr-name="phone"
                 {...props}
               />
@@ -325,101 +310,85 @@ const entityForms = {
           },
         },
       },
-    },
-    status: {
-      label: {
-        component: {
+      status: {
+        label: {
           Render: ({
             props,
-            translation,
           }: {
             props?: React.ComponentProps<typeof Label>;
-            translation?: (key: string) => string;
           }) => {
             return (
               <Label {...props}>
                 {translation
-                  ? translation("itemStatusLabel")
-                  : "itemAttrInputText6Label"}
+                  ? translation("entityForms.editItemAttributes.status")
+                  : "itemAttrInputTextLabel"}
               </Label>
             );
           },
         },
-      },
-      input: {
-        type: "text",
-        component: {
+        input: {
+          type: "select",
           dataEntityAttrName: "status",
-          Render: (props?: React.ComponentProps<typeof Input>) => {
+          Render: ({
+            props,
+            value = "",
+          }: {
+            props?: React.ComponentProps<typeof Select>;
+            value?: string | number | undefined;
+          }) => {
+            const statusOptions = Object.values(SttsEnum);
+
             return (
-              <Input
-                id="status"
-                type="text"
-                autoComplete="status"
-                placeholder={Object.values(StatusEnum).join(", ")}
-                value={props?.value === null ? "" : props?.value}
-                onChange={props?.onChange || (() => {})}
-                data-entity-attr-name="status"
+              <Select
                 {...props}
-              />
+                value={(value === null ? "" : value) as string}
+                onValueChange={(value) => {
+                  handleFormInputChange?.({
+                    target: {
+                      value,
+                      dataset: {
+                        entityAttrName: "status",
+                      },
+                    },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>);
+                }}
+                data-entity-attr-name="status"
+              >
+                <SelectTrigger id="status">
+                  <SelectValue
+                    placeholder={translation(
+                      "usersPage.itemSelectStatusPlaceholder",
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             );
           },
         },
       },
     },
-  },
+  };
+
+  return { entityForms };
 };
 
 function ElementsPage() {
-  const translation = useTranslations("usersPage");
-
+  // begin ElementsPage states and handlers setup
+  const translation = useTranslations();
   const [elements, setElements] = useState<IEntity[]>([] as IEntity[]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<IEntity | null>(null);
-  const [formData, setFormData] = useState<IEntity>(newItemInitialState);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<IEntity | undefined>(itemInitState);
   const [itemToDelete, setItemToDelete] = useState<IEntity | null>(null);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-
-  const fetchElements = async () => {
-    const filterEntitiesPayloadDto: FilterEntitiesPayloadDto = {
-      attributes: {},
-      pagination: {
-        perPage: itemsPerPage.toString(),
-        // offset: "0",
-        page: currentPage.toString(),
-        sortField: "_id",
-        sortOrder: "desc",
-      },
-      wildcard: "true",
-    };
-    const response = await filterEntities(filterEntitiesPayloadDto);
-    const data = await response.json();
-    console.log("response data", data);
-
-    if (data?.users) {
-      setElements(data.users);
-    }
-    if (data?.pagination?.totalPages) {
-      setTotalPages(data.pagination.totalPages);
-    }
-  };
-
-  useEffect(() => {
-    fetchElements();
-  }, [currentPage, itemsPerPage]);
-
-  useEffect(() => {
-    if (!isFormOpen) {
-      setEditingItem(null);
-      setFormData(newItemInitialState);
-    }
-  }, [isFormOpen]);
-
   const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     const { entityAttrName } = e.target.dataset;
@@ -428,128 +397,23 @@ function ElementsPage() {
       ...(entityAttrName ? { [entityAttrName]: value } : {}),
     }));
   };
-
-  const handleAddNewClick = () => {
-    setEditingItem(null);
-    setFormData(newItemInitialState);
-    setIsFormOpen(true);
-  };
-
-  const handleEditClick = (item: IEntity) => {
-    setEditingItem(item);
-    setFormData(item);
-    setIsFormOpen(true);
-  };
-
-  const handleSaveEntity = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    const formattedFormData = Object.fromEntries(
-      Object.entries(formData).map(([key, value]) => {
-        if (key === "password" || key === "_id") {
-          return [key, value];
-        }
-        return [key, typeof value === "string" ? value.toLowerCase() : value];
-      }),
-    );
-
-    if (editingItem) {
-      if (!editingItem._id) {
-        return;
-      }
-
-      const updatedEntityData = await updateItem(formattedFormData);
-
-      const { message } = updatedEntityData;
-      console.log("updateItem data", updatedEntityData);
-
-      if (!updatedEntityData?._id) {
-        toast({
-          title: message || "Error while updating item",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (message) {
-        toast({
-          title: message,
-          variant: "default",
-        });
-      }
-
-      setElements(
-        elements.map((entityItem) =>
-          entityItem._id === editingItem._id ? updatedEntityData : entityItem,
-        ),
-      );
-      setIsFormOpen(false);
-      return;
-    }
-
-    const createdEntityData = await signup(formattedFormData);
-    const { message } = createdEntityData;
-    console.log("signup data", createdEntityData);
-
-    if (!createdEntityData?._id) {
-      toast({
-        title: message || "Error while creating",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newItem: IEntity = {
-      _id: createdEntityData._id,
-      ...createdEntityData,
-    };
-
-    toast({
-      title: message || "created successfully",
-      variant: "default",
+  const { entityForms } = buildEntityForms({
+    translation,
+    handleFormInputChange: handleFormInputChange,
+  });
+  const fetchElements = buildFetchElements<IEntity>({
+    setElements,
+    setTotalPages,
+    datasetFetchMethod,
+    datasetFetchResponseItemsAttr,
+  });
+  useEffect(() => {
+    fetchElements({
+      itemsPerPage,
+      currentPage,
     });
-
-    setElements((prev) => [...prev, newItem]);
-
-    setIsFormOpen(false);
-  };
-
-  const handleDeleteClick = (item: IEntity) => {
-    setItemToDelete(item);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!itemToDelete?._id) {
-      return;
-    }
-
-    const updatedEntityData = await updateItem({
-      _id: itemToDelete._id,
-      status: StatusEnum.ARCHIVED,
-    });
-    const { message } = updatedEntityData;
-    console.debug("updatedEntityData", updatedEntityData);
-
-    if (!updatedEntityData?._id) {
-      toast({
-        title: message || "Error while updating item",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (message) {
-      toast({
-        title: message,
-        variant: "default",
-      });
-    }
-    await fetchElements();
-
-    setIsDeleteDialogOpen(false);
-    setItemToDelete(null);
-  };
+  }, [formData?._id, currentPage, itemsPerPage]);
+  // end ElementsPage states and handlers setup
 
   return (
     <SidebarProvider>
@@ -560,161 +424,146 @@ function ElementsPage() {
           <div className="flex items-center justify-between space-y-2">
             <div>
               <h1 className="text-3xl font-headline font-bold tracking-tight">
-                {translation("pageTitle")}
+                {translation("usersPage.pageTitle")}
               </h1>
               <p className="text-muted-foreground">
-                {translation("pageSubtitle")}
+                {translation("usersPage.pageSubtitle")}
               </p>
             </div>
-            <Button onClick={handleAddNewClick}>
+            <Button
+              onClick={() => {
+                setFormData({ ...itemInitState, _id: -1 });
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
-              {translation("addItemButton")}
+              {translation("common.addItemButton")}
             </Button>
           </div>
 
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <Dialog
+            open={
+              formData?._id === -1 ||
+              parseInt(formData?._id?.toString() || "0") >= 0
+            }
+            onOpenChange={() => {
+              setFormData(itemInitState);
+            }}
+          >
             <DialogContent className="sm:max-w-xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingItem
-                    ? translation("editItemDialogTitle")
-                    : translation("addItemDialogTitle")}
+                  {formData?._id !== -1
+                    ? translation("common.editItemDialogTitle")
+                    : translation("common.addItemDialogTitle")}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingItem
-                    ? translation("editItemDialogSubtitle")
-                    : translation("addItemDialogSubtitle")}
+                  {formData?._id !== -1
+                    ? translation("common.editItemDialogSubtitle")
+                    : translation("common.addItemDialogSubtitle")}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSaveEntity}>
-                <div className="grid grid-cols-2 gap-4 py-4">
-                  <div className="space-y-2">
-                    {entityForms.createNewItem.givenName.label.component.Render(
-                      {
-                        translation,
-                      },
-                    )}
+              <form
+                onSubmit={(event) => {
+                  handleSaveEntity({
+                    formData,
+                    createEntityService: createEntityUserService,
+                    updateEntityService: updateEntityUserService,
+                  })(event);
 
-                    {entityForms.createNewItem.givenName.input.component.Render(
-                      {
-                        value:
-                          formData[
-                            entityForms.createNewItem.givenName.input.component
-                              .dataEntityAttrName as keyof IEntity
-                          ],
-                        onChange: handleFormInputChange,
-                      },
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    {entityForms.createNewItem.familyName.label.component.Render(
-                      {
-                        translation,
-                      },
-                    )}
+                  setFormData(itemInitState);
+                }}
+              >
+                <div
+                  // className="grid
+                  // grid-cols-2
+                  //  gap-4 py-4"
+                  // className="grid
+                  // grid-cols-6
+                  //  gap-4 py-4"
+                  className="grid grid-cols-4 gap-4 py-4"
+                >
+                  {Object.entries(entityForms.editItemAttributes).map(
+                    ([inputKeyName, inputComponents]) => {
+                      return (
+                        <div
+                          className="col-span-2 space-y-2"
+                          key={inputKeyName}
+                        >
+                          {inputComponents.label.Render({})}
 
-                    {entityForms.createNewItem.familyName.input.component.Render(
-                      {
-                        value:
-                          formData[
-                            entityForms.createNewItem.familyName.input.component
-                              .dataEntityAttrName as keyof IEntity
-                          ],
-                        onChange: handleFormInputChange,
-                      },
-                    )}
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    {entityForms.createNewItem.email.label.component.Render({
-                      translation,
-                    })}
+                          {inputComponents.input.Render({
+                            value: formData?.[
+                              inputComponents.input
+                                .dataEntityAttrName as keyof IEntity
+                            ] as string | number | undefined,
 
-                    {entityForms.createNewItem.email.input.component.Render({
-                      value:
-                        formData[
-                          entityForms.createNewItem.email.input.component
-                            .dataEntityAttrName as keyof IEntity
-                        ],
-                      onChange: handleFormInputChange,
-                    })}
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    {entityForms.createNewItem.password.label.component.Render({
-                      translation,
-                    })}
-
-                    {entityForms.createNewItem.password.input.component.Render({
-                      value:
-                        formData[
-                          entityForms.createNewItem.password.input.component
-                            .dataEntityAttrName as keyof IEntity
-                        ],
-                      onChange: handleFormInputChange,
-                    })}
-                  </div>
-
-                  <div className="col-span-2 space-y-2">
-                    {entityForms.createNewItem.phone.label.component.Render({
-                      translation,
-                    })}
-
-                    {entityForms.createNewItem.phone.input.component.Render({
-                      value:
-                        formData[
-                          entityForms.createNewItem.phone.input.component
-                            .dataEntityAttrName as keyof IEntity
-                        ],
-                      onChange: handleFormInputChange,
-                    })}
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    {entityForms.createNewItem.status.label.component.Render({
-                      translation,
-                    })}
-
-                    {entityForms.createNewItem.status.input.component.Render({
-                      value:
-                        formData[
-                          entityForms.createNewItem.status.input.component
-                            .dataEntityAttrName as keyof IEntity
-                        ],
-                      onChange: handleFormInputChange,
-                    })}
-                  </div>
+                            onChange: handleFormInputChange,
+                          })}
+                        </div>
+                      );
+                    },
+                  )}
                 </div>
                 <DialogFooter>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsFormOpen(false)}
+                    onClick={() => setFormData(itemInitState)}
                   >
-                    {translation("cancelText")}
+                    {translation("common.cancelText")}
                   </Button>
-                  <Button type="submit">{translation("saveText")}</Button>
+                  <Button type="submit">
+                    {translation("common.saveText")}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
 
           <AlertDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
+            open={itemToDelete?._id ? true : false}
+            onOpenChange={(open) => !open && setItemToDelete(null)}
           >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  {translation("alertDeleteItemTitle")}
+                  {translation("common.alertDeleteItemTitle")}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  {translation("alertDeleteItemDescription")}
+                  {translation("common.alertDeleteItemDescription")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-                  {translation("cancelText")}
+                <AlertDialogCancel
+                  onClick={() => {
+                    setItemToDelete(null);
+                  }}
+                >
+                  {translation("common.cancelText")}
                 </AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmDelete}>
-                  {translation("alertDeleteItemConfirm")}
+                <AlertDialogAction
+                  onClick={() => {
+                    const formDataDto = {
+                      ...itemToDelete,
+                      status: SttsEnum.TO_BE_DELETED,
+                      ownerString: undefined,
+                    };
+
+                    handleSaveEntity({
+                      formData: formDataDto,
+                      createEntityService: createEntityUserService,
+                      updateEntityService: updateEntityUserService,
+                    })()?.finally(() => {
+                      fetchElements({
+                        currentPage,
+                      });
+
+                      // close the dialog
+                      setFormData(itemInitState);
+                    });
+                  }}
+                >
+                  {translation("common.alertDeleteItemConfirm")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -722,9 +571,9 @@ function ElementsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>{translation("itemsTabeTitle")}</CardTitle>
+              <CardTitle>{translation("usersPage.itemsTabeTitle")}</CardTitle>
               <CardDescription>
-                {translation("itemsTabeSubtitle")}
+                {translation("usersPage.itemsTabeSubtitle")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -760,16 +609,23 @@ function ElementsPage() {
               </div>
 
               <TableSection
-                elements={elements}
-                handleEditClick={handleEditClick}
-                handleDeleteClick={handleDeleteClick}
-                newItemInitialState={newItemInitialState}
+                // elements={elements}
+                elements={(elements || []).map((user: IEntity) => {
+                  return {
+                    ...user,
+                  };
+                })}
+                handleEditClick={(item: IEntity) => {
+                  setFormData(item);
+                }}
+                handleDeleteClick={setItemToDelete}
+                newItemInitialState={itemInitState}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={totalPages}
                 searchTerm={searchTerm}
-                columns={Object.keys(newItemInitialState).filter(
+                columns={Object.keys(itemInitState).filter(
                   (key) => !["password"].includes(key),
                 )}
               />

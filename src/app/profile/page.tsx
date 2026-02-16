@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const userAvatar = {
   id: "user-avatar-large",
@@ -26,7 +27,7 @@ const userAvatar = {
 };
 
 function ProfilePage() {
-  const { user } = useAuth();
+  const { authenticatedUser } = useAuth();
 
   return (
     <SidebarProvider>
@@ -58,7 +59,9 @@ function ProfilePage() {
                     alt={userAvatar.description}
                     data-ai-hint={userAvatar.imageHint}
                   />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarFallback>
+                    {`${authenticatedUser?.givenName?.charAt(0)}${authenticatedUser?.familyName?.charAt(0)}`}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col gap-2">
                   <Button>Changer l'avatar</Button>
@@ -71,20 +74,41 @@ function ProfilePage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="inputText1">Prénom</Label>
-                  <Input id="inputText1" defaultValue="Jean" />
+                  <Input
+                    id="inputText1"
+                    defaultValue={authenticatedUser?.givenName || ""}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="inputText2">Nom</Label>
-                  <Input id="inputText2" defaultValue="Dupont" />
+                  <Input
+                    id="inputText2"
+                    defaultValue={authenticatedUser?.familyName || ""}
+                  />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
-                    value={user?.email || ""}
+                    defaultValue={authenticatedUser?.email || ""}
                     readOnly
                   />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="phone">phone</Label>
+                  <Input
+                    id="phone"
+                    type="phone"
+                    defaultValue={authenticatedUser?.phone || ""}
+                    readOnly
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="status">status</Label>
+                  <Badge variant="secondary">
+                    {authenticatedUser?.status || "Inactif"}
+                  </Badge>
                 </div>
               </div>
             </CardContent>

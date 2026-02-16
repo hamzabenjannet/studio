@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TableSection } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -42,20 +41,46 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
+
+import "nextjs-reusable-table/dist/index.css";
+
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+
+import { IEntity as IEntityUser } from "@/app/users/page";
+import { IEntity as IEntityVehicule } from "@/app/vehicles/page";
+import { filterEntities as filterEntitiesUsersService } from "@/services/users/users.service";
+import {
+  createVehicle as createEntityVehiclesService,
+  filterVehicles as datasetFetchVehiclesMethod,
+  updateVehicle as updateEntityVehiclesService,
+} from "@/services/vehicles/vehicles.service";
 
 import {
-  createStock,
-  deleteStock,
-  filterStocks,
-  FilterEntitiesPayloadDto,
-  updateStock,
+  createStock as createEntityStockService,
+  filterStocks as datasetFetchMethod,
+  updateStock as updateEntityStockService,
 } from "@/services/stock/stock.service";
-import { toast } from "@/hooks/use-toast";
 
-interface IEntity {
-  _id?: number | string | undefined;
+import { StatusEnum as SttsEnum } from "@/enums/status.enum";
+import { TableSection } from "@/components/ui/table";
+
+import {
+  buildFetchElements,
+  buildItemInitState,
+  handleSaveEntity,
+  IBaseEntity,
+} from "@/services/commun";
+
+import { Entity as UserEntity } from "@/app/users/page";
+import { Entity as VehiculeEntity } from "@/app/vehicles/page";
+import { Textarea } from "@/components/ui/textarea";
+
+export const entityName = "stock";
+export const entityPluralName = "stocks";
+export const datasetFetchResponseItemsAttr = "stockItems";
+
+export interface IEntity extends IBaseEntity {
   name?: string | undefined;
   sku?: string | undefined;
   quantity?: number | undefined;
@@ -66,7 +91,7 @@ interface IEntity {
 }
 
 export class Entity implements IEntity {
-  _id?: number | string | undefined = undefined;
+  _id: number = -2;
   name?: string | undefined = undefined;
   sku?: string | undefined = undefined;
   quantity?: number | undefined = 0;
@@ -74,185 +99,438 @@ export class Entity implements IEntity {
   sellPrice?: number | undefined = 0;
   availableInInventory?: boolean | undefined = true;
   notes?: string | undefined = undefined;
+  status?: SttsEnum | undefined = SttsEnum.ACTIVE;
 }
 
-const newItemInitialState: IEntity = Object.fromEntries(
-  Object.entries(new Entity()).map(([key, value]) => [key, value]),
-) as unknown as IEntity;
+export const itemInitState = buildItemInitState<IEntity>({
+  EntityClass: Entity,
+});
 
-function StockPage() {
-  const [elements, setElements] = useState<IEntity[]>([] as IEntity[]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<IEntity | null>(null);
-  const [formData, setFormData] = useState<IEntity>(newItemInitialState);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [stockToDelete, setStockToDelete] = useState<IEntity | null>(null);
-
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
-  const [totalPages, setTotalPages] = useState(1);
-
-  const fetchStocks = async () => {
-    try {
-      const filterEntitiesPayloadDto: FilterEntitiesPayloadDto = {
-        attributes: {}, // No search term here if we want local filtering or if we want to fetch all and filter client side.
-        pagination: {
-          perPage: itemsPerPage.toString(),
-          page: currentPage.toString(),
-          sortField: "name", // Default sort by name
-          sortOrder: "desc",
+export const buildEntityForms = ({
+  translation = (key: string) => key,
+  handleFormInputChange = ({}: Record<string, any>) => {},
+}: {
+  translation?: (key: string) => string;
+  handleFormInputChange?: (event: any) => void;
+}) => {
+  const entityForms = {
+    editItemAttributes: {
+      name: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.name")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
         },
-        wildcard: "true",
-      };
+        input: {
+          type: "text",
+          dataEntityAttrName: "name",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="name"
+                type="text"
+                placeholder="Stock item name"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="name"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      sku: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.sku")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "sku",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="sku"
+                type="text"
+                placeholder="Stock item SKU"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="sku"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      quantity: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.quantity")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "number",
+          dataEntityAttrName: "quantity",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="quantity"
+                type="number"
+                placeholder="Stock item quantity"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="quantity"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      buyPrice: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.buyPrice")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "number",
+          dataEntityAttrName: "buyPrice",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="buyPrice"
+                type="number"
+                placeholder="Stock item buy price"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="buyPrice"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      sellPrice: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.sellPrice")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "number",
+          dataEntityAttrName: "sellPrice",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Input>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Input
+                id="sellPrice"
+                type="number"
+                placeholder="Stock item sell price"
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+                data-entity-attr-name="sellPrice"
+                {...props}
+              />
+            );
+          },
+        },
+      },
+      status: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.status")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "select",
+          dataEntityAttrName: "status",
+          Render: ({
+            props,
+            value = "",
+          }: {
+            props?: React.ComponentProps<typeof Select>;
+            value?: string | number | undefined;
+          }) => {
+            const selectOptions = Object.values(SttsEnum);
 
-      const response = await filterStocks(filterEntitiesPayloadDto);
-      const data = await response.json();
-
-      if (!data?.stockItems) {
-        setElements([]);
-        return;
-      }
-
-      setElements(data.stockItems);
-
-      if (data?.pagination?.totalPages) {
-        setTotalPages(data.pagination.totalPages);
-      }
-    } catch (error) {
-      console.error("Failed to fetch stock items", error);
-      toast({ title: "Failed to fetch stock items", variant: "destructive" });
-    }
+            return (
+              <Select
+                {...props}
+                value={(value === null ? "" : value) as string}
+                onValueChange={(value) => {
+                  handleFormInputChange?.({
+                    target: {
+                      value,
+                      dataset: {
+                        entityAttrName: "status",
+                      },
+                    },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>);
+                }}
+                data-entity-attr-name="status"
+              >
+                <SelectTrigger id="status">
+                  <SelectValue
+                    placeholder={translation(
+                      "usersPage.itemSelectStatusPlaceholder",
+                    )}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectOptions.map((mapItemValue) => (
+                    <SelectItem
+                      key={`status_${mapItemValue}`}
+                      value={mapItemValue}
+                    >
+                      {mapItemValue}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            );
+          },
+        },
+      },
+      availableInInventory: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation(
+                      "entityForms.editItemAttributes.availableInInventory",
+                    )
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "checkbox",
+          dataEntityAttrName: "availableInInventory",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Checkbox>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              <Checkbox
+                id="availableInInventory"
+                checked={Boolean(value)}
+                onCheckedChange={(checkedState) => {
+                  handleFormInputChange?.({
+                    target: {
+                      value: checkedState,
+                      dataset: {
+                        entityAttrName: "availableInInventory",
+                      },
+                    },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>);
+                }}
+                data-entity-attr-name="availableInInventory"
+              />
+            );
+          },
+        },
+      },
+      notes: {
+        label: {
+          Render: ({
+            props,
+          }: {
+            props?: React.ComponentProps<typeof Label>;
+          }) => {
+            return (
+              <Label {...props}>
+                {translation
+                  ? translation("entityForms.editItemAttributes.notes")
+                  : "itemAttrInputTextLabel"}
+              </Label>
+            );
+          },
+        },
+        input: {
+          type: "text",
+          dataEntityAttrName: "notes",
+          Render: ({
+            props,
+            value = "",
+            onChange = () => {},
+          }: {
+            props?: React.ComponentProps<typeof Textarea>;
+            value?: string | number | undefined;
+            onChange?: (event?: any) => void;
+          }) => {
+            return (
+              // <Input
+              //   id="notes"
+              //   type="text"
+              //   placeholder=""
+              //   value={value === null ? "" : value}
+              //   onChange={onChange || (() => {})}
+              //   data-entity-attr-name="notes"
+              //   {...props}
+              // />
+              <Textarea
+                id="notes"
+                placeholder="Notes supplémentaires..."
+                value={value === null ? "" : value}
+                onChange={onChange || (() => {})}
+              />
+            );
+          },
+        },
+      },
+    },
+    // editItemAttributes: {} as Record<string, any>,
   };
 
-  useEffect(() => {
-    fetchStocks();
-  }, [currentPage, itemsPerPage]);
+  return { entityForms };
+};
 
-  useEffect(() => {
-    if (!isFormOpen) {
-      setEditingItem(null);
-      setFormData(newItemInitialState);
-    }
-  }, [isFormOpen]);
-
-  const handleFormInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { id, value } = e.target;
+function ElementsPage() {
+  // begin ElementsPage states and handlers setup
+  const translation = useTranslations();
+  const [elements, setElements] = useState<IEntity[]>([] as IEntity[]);
+  const [formData, setFormData] = useState<IEntity | undefined>(itemInitState);
+  const [itemToDelete, setItemToDelete] = useState<IEntity | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const { entityAttrName } = e.target.dataset;
     setFormData((prev) => ({
       ...prev,
-      [id]: value,
+      ...(entityAttrName ? { [entityAttrName]: value } : {}),
     }));
   };
-
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      availableInInventory: checked,
-    }));
-  };
-
-  const handleAddNewClick = () => {
-    setEditingItem(null);
-    setFormData(newItemInitialState);
-    setIsFormOpen(true);
-  };
-
-  const handleEditClick = (stockItem: IEntity) => {
-    setEditingItem(stockItem);
-    setFormData({ ...stockItem });
-    setIsFormOpen(true);
-  };
-
-  const handleSaveStock = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      const payload: Record<string, any> = { ...formData };
-
-      // Ensure numbers are numbers
-      if (payload.quantity) payload.quantity = Number(payload.quantity);
-      if (payload.buyPrice) payload.buyPrice = Number(payload.buyPrice);
-      if (payload.sellPrice) payload.sellPrice = Number(payload.sellPrice);
-
-      if (editingItem && editingItem._id) {
-        const response = await updateStock(
-          payload as unknown as Record<
-            string,
-            string | number | boolean | undefined | null
-          >,
-        );
-
-        const { message } = await response.json();
-
-        if (response.ok) {
-          toast({ title: message || "Updated successfully" });
-          fetchStocks();
-        } else {
-          toast({
-            title: "Failed to update stock item",
-            variant: "destructive",
-          });
-        }
-      } else {
-        const response = await createStock(
-          payload as unknown as Record<
-            string,
-            string | number | boolean | undefined | null
-          >,
-        );
-
-        const { message } = await response.json();
-
-        if (response.ok) {
-          toast({ title: message || "Created successfully" });
-          fetchStocks();
-        } else {
-          toast({
-            title: message || "Failed to create item",
-            variant: "destructive",
-          });
-        }
-      }
-
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error("Error saving", error);
-      toast({ title: "Error saving", variant: "destructive" });
-    }
-  };
-
-  const handleDeleteClick = (stockItem: IEntity) => {
-    setStockToDelete(stockItem);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (stockToDelete && stockToDelete._id) {
-      try {
-        const response = await deleteStock(stockToDelete._id);
-        const { message } = await response.json();
-        if (response.ok) {
-          toast({ title: message || "Deleted successfully" });
-          fetchStocks();
-        } else {
-          toast({
-            title: message || "Failed to delete item",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error("Error deleting item", error);
-        toast({
-          title: "Error deleting item",
-          variant: "destructive",
-        });
-      }
-    }
-    setIsDeleteDialogOpen(false);
-    setStockToDelete(null);
-  };
+  const { entityForms } = buildEntityForms({
+    translation,
+    handleFormInputChange: handleFormInputChange,
+  });
+  const fetchElements = buildFetchElements<IEntity>({
+    setElements,
+    setTotalPages,
+    datasetFetchMethod,
+    datasetFetchResponseItemsAttr,
+  });
+  useEffect(() => {
+    fetchElements({
+      itemsPerPage,
+      currentPage,
+    });
+  }, [formData?._id, currentPage, itemsPerPage]);
+  // end ElementsPage states and handlers setup
 
   return (
     <SidebarProvider>
@@ -263,138 +541,146 @@ function StockPage() {
           <div className="flex items-center justify-between space-y-2">
             <div>
               <h1 className="text-3xl font-headline font-bold tracking-tight">
-                Stock
+                {translation("stock.page.pageTitle")}
               </h1>
               <p className="text-muted-foreground">
-                Gérez votre inventaire et stock.
+                {translation("stock.page.pageSubtitle")}
               </p>
             </div>
-            <Button onClick={handleAddNewClick}>
+            <Button
+              onClick={() => {
+                setFormData({ ...itemInitState, _id: -1 });
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
-              Ajouter un article
+              {translation("common.addItemButton")}
             </Button>
           </div>
 
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogContent className="sm:max-w-2xl">
+          <Dialog
+            open={
+              formData?._id === -1 ||
+              parseInt(formData?._id?.toString() || "0") >= 0
+            }
+            onOpenChange={() => {
+              setFormData(itemInitState);
+            }}
+          >
+            <DialogContent className="sm:max-w-xl">
               <DialogHeader>
                 <DialogTitle>
-                  {editingItem
-                    ? "Modifier l'article"
-                    : "Ajouter un nouvel article"}
+                  {formData?._id !== -1
+                    ? translation("common.editItemDialogTitle")
+                    : translation("common.addItemDialogTitle")}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingItem
-                    ? "Mettez à jour les informations de l'article."
-                    : "Remplissez les informations ci-dessous pour ajouter un nouvel article."}
+                  {formData?._id !== -1
+                    ? translation("common.editItemDialogSubtitle")
+                    : translation("common.addItemDialogSubtitle")}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSaveStock}>
-                <div className="grid grid-cols-2 gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nom</Label>
-                    <Input
-                      id="name"
-                      placeholder="Filtre à huile"
-                      value={formData.name}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sku">SKU</Label>
-                    <Input
-                      id="sku"
-                      placeholder="SKU-123"
-                      value={formData.sku}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantité</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      placeholder="0"
-                      value={formData.quantity}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="buyPrice">Prix d'achat</Label>
-                    <Input
-                      id="buyPrice"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={formData.buyPrice}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sellPrice">Prix de vente</Label>
-                    <Input
-                      id="sellPrice"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={formData.sellPrice}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2 pt-8">
-                    <Checkbox
-                      id="availableInInventory"
-                      checked={formData.availableInInventory}
-                      onCheckedChange={handleCheckboxChange}
-                    />
-                    <Label htmlFor="availableInInventory">
-                      Disponible en inventaire
-                    </Label>
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Notes supplémentaires..."
-                      value={formData.notes || ""}
-                      onChange={handleFormInputChange}
-                    />
-                  </div>
+              <form
+                onSubmit={(event) => {
+                  handleSaveEntity({
+                    formData,
+                    createEntityService: createEntityStockService,
+                    updateEntityService: updateEntityStockService,
+                  })(event);
+
+                  setFormData(itemInitState);
+                }}
+              >
+                <div
+                  // className="grid
+                  // grid-cols-2
+                  //  gap-4 py-4"
+                  // className="grid
+                  // grid-cols-6
+                  //  gap-4 py-4"
+                  className="grid grid-cols-4 gap-4 py-4"
+                >
+                  {Object.entries(entityForms.editItemAttributes).map(
+                    ([inputKeyName, inputComponents]) => {
+                      return (
+                        <div
+                          className="col-span-2 space-y-2"
+                          key={inputKeyName}
+                        >
+                          {inputComponents.label.Render({})}
+
+                          {inputComponents.input.Render({
+                            value: formData?.[
+                              inputComponents.input
+                                .dataEntityAttrName as keyof IEntity
+                            ] as string | number | undefined,
+
+                            onChange: handleFormInputChange,
+                          })}
+                        </div>
+                      );
+                    },
+                  )}
                 </div>
                 <DialogFooter>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsFormOpen(false)}
+                    onClick={() => setFormData(itemInitState)}
                   >
-                    Annuler
+                    {translation("common.cancelText")}
                   </Button>
-                  <Button type="submit">Sauvegarder</Button>
+                  <Button type="submit">
+                    {translation("common.saveText")}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
 
           <AlertDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
+            open={itemToDelete?._id ? true : false}
+            onOpenChange={(open) => !open && setItemToDelete(null)}
           >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  Êtes-vous sûr de vouloir supprimer?
+                  {translation("common.alertDeleteItemTitle")}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Cette action est irréversible. L'article sera définitivement
-                  supprimé.
+                  {translation("common.alertDeleteItemDescription")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-                  Annuler
+                <AlertDialogCancel
+                  onClick={() => {
+                    setItemToDelete(null);
+                  }}
+                >
+                  {translation("common.cancelText")}
                 </AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmDelete}>
-                  Supprimer
+                <AlertDialogAction
+                  onClick={() => {
+                    const formDataDto = {
+                      ...itemToDelete,
+                      status: SttsEnum.TO_BE_DELETED,
+                      ownerString: undefined,
+                    };
+
+                    handleSaveEntity({
+                      formData: formDataDto,
+                      createEntityService: createEntityStockService,
+                      updateEntityService: updateEntityStockService,
+                    })()?.finally(() => {
+                      fetchElements({
+                        currentPage,
+                      });
+
+                      // close the dialog
+                      setFormData(itemInitState);
+                    });
+                  }}
+                >
+                  {translation("common.alertDeleteItemConfirm")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -402,16 +688,16 @@ function StockPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Liste du stock</CardTitle>
+              <CardTitle>{translation("stock.page.itemsTabeTitle")}</CardTitle>
               <CardDescription>
-                Consultez et gérez tous les articles en stock.
+                {translation("stock.page.itemsTabeSubtitle")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="w-full">
                   <input
-                    id="stockSearchInput"
+                    id="formInputText7Search1"
                     type="text"
                     placeholder="Search..."
                     value={searchTerm}
@@ -427,7 +713,7 @@ function StockPage() {
                     value={itemsPerPage.toString()}
                     onValueChange={(value) => setItemsPerPage(Number(value))}
                   >
-                    <SelectTrigger id="itemsPerPageSelect">
+                    <SelectTrigger id="itemsPerPageSelectInputId">
                       <SelectValue placeholder="Items per page" />
                     </SelectTrigger>
                     <SelectContent>
@@ -440,19 +726,37 @@ function StockPage() {
               </div>
 
               <TableSection
-                elements={elements}
-                handleEditClick={handleEditClick}
-                handleDeleteClick={handleDeleteClick}
-                newItemInitialState={newItemInitialState}
-                columns={Object.keys(newItemInitialState).filter(
-                  (key) => key !== "_id", // Filter out internal fields if needed
-                )}
+                // elements={elements}
+                elements={(elements || []).map((elementsItem: IEntity) => {
+                  return {
+                    ...elementsItem,
+                  };
+                })}
+                handleEditClick={(item: IEntity) => {
+                  setFormData(item);
+                }}
+                handleDeleteClick={setItemToDelete}
+                newItemInitialState={itemInitState}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={totalPages}
                 searchTerm={searchTerm}
+                columns={Object.keys(itemInitState).filter(
+                  (key) => !["password"].includes(key),
+                )}
               />
+
+              {/* Debug: item details */}
+              {/* {elements.map((entityItem) => (
+                <div key={entityItem._id}>
+                  {Object.keys(entityItem).map((key) => (
+                    <div key={key}>
+                      {key}: {entityItem[key as keyof IEntity]}
+                    </div>
+                  ))}
+                </div>
+              ))} */}
             </CardContent>
           </Card>
         </main>
@@ -461,4 +765,4 @@ function StockPage() {
   );
 }
 
-export default withAuth(StockPage);
+export default withAuth(ElementsPage);
