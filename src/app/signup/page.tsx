@@ -162,7 +162,7 @@ export default function SignupPage() {
                 <p>{loading ? "Loading..." : ""}</p>
                 <p>
                   {authenticatedUser?.email &&
-                    `You are already signed in as ${authenticatedUser?.email}`}
+                    `Signed in as ${authenticatedUser?.email}`}
                 </p>
               </div>
               <Button
