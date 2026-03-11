@@ -1,5 +1,5 @@
 import { API_URL } from "@/app/consts";
-import { DatasetFilterDto, fetchWrapper } from "../commun";
+import { DatasetFilterDto, fetchWrapper } from "../common";
 
 export const filterBilling = async (
   filterEntitiesPayloadDto: DatasetFilterDto,
@@ -55,4 +55,3 @@ export const deleteBilling = async (_id: number | string) => {
     },
   });
 };
-

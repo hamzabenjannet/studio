@@ -10,6 +10,7 @@ export enum StatusEnum {
   DISABLED = "disabled",
   PUBLISHED = "published",
   IN_REPAIR = "in-repair",
+  IN_PROGRESS = "in-progress",
   SOLD = "sold",
   TO_BE_DELETED = "to-be-deleted",
 }

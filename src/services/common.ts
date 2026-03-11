@@ -66,6 +66,48 @@ export function buildFetchElements<IXEntity extends {}>({
   };
 }
 
+export function buildDataTableFetchElements<IXEntity extends {}>({
+  datasetFetchMethod = (filterDto: DatasetFilterDto): Promise<Response> =>
+    Promise.resolve(filterDto && new Response()),
+  datasetFetchResponseItemsAttr = "users",
+}: {
+  setElements?: (elements: IXEntity[]) => void;
+  setTotalPages?: (totalPages: number) => void;
+  datasetFetchMethod?: (filterDto: DatasetFilterDto) => Promise<Response>;
+  datasetFetchResponseItemsAttr?: string;
+}) {
+  return async ({
+    itemsPerPage = undefined,
+    currentPage = undefined,
+  }: {
+    itemsPerPage?: number;
+    currentPage?: number;
+  } = {}): Promise<{
+    pagination: IPagination;
+    [datasetFetchResponseItemsAttr]: IXEntity[] | undefined;
+  }> => {
+    const filterDto: DatasetFilterDto = {
+      attributes: {},
+      pagination: {
+        perPage: (itemsPerPage && itemsPerPage.toString()) || undefined,
+        // offset: "0",
+        page: (currentPage && currentPage.toString()) || undefined,
+        sortField: "_id",
+        sortOrder: "desc",
+      },
+      wildcard: "true",
+    };
+
+    const response = await datasetFetchMethod(filterDto);
+    const responseData = await response.json();
+    // console.debug(
+    //   "buildDataTableFetchElements.async: response data",
+    //   responseData,
+    // );
+    return responseData;
+  };
+}
+
 export async function fetchWrapper({
   method = "POST",
   url = `${API_URL}/`,
@@ -136,6 +178,7 @@ export const serviceUpdateEntity = async <IEntity extends { _id?: string }>({
     title: message || "updated successfully",
     variant: "default",
   });
+  return updatedEntityData;
 };
 
 export const serviceCreateEntity = async <IEntity extends { _id?: string }>({
@@ -165,6 +208,7 @@ export const serviceCreateEntity = async <IEntity extends { _id?: string }>({
     title: message || "created successfully",
     variant: "default",
   });
+  return createdEntityData;
 };
 
 export interface IBaseEntity {
@@ -201,7 +245,7 @@ export const handleSaveEntity = <IEntity extends IBaseEntity>({
   updateEntityService: (entityPayload: Record<string, any>) => Promise<IEntity>;
 }) => {
   return (event?: React.FormEvent) => {
-    event && event.preventDefault();
+    event && event?.preventDefault();
 
     if (!formData) {
       return;
@@ -224,7 +268,7 @@ export const handleSaveEntity = <IEntity extends IBaseEntity>({
 
     // if formData?._id <= 0, then it is a new item
     if (formData?._id === -1) {
-      serviceCreateEntity({
+      return serviceCreateEntity({
         gatewayService: createEntityService,
         formDataDto,
       });
@@ -232,7 +276,7 @@ export const handleSaveEntity = <IEntity extends IBaseEntity>({
 
     // we update the item
     if (formDataDto?._id >= 0) {
-      serviceUpdateEntity({
+      return serviceUpdateEntity({
         gatewayService: updateEntityService,
         formDataDto,
       });
@@ -241,3 +285,16 @@ export const handleSaveEntity = <IEntity extends IBaseEntity>({
     return Promise.resolve(formDataDto);
   };
 };
+
+export interface IPagination {
+  perPage?: number;
+  offset?: number;
+  page?: number;
+  sortField?: string;
+  sortOrder?: string;
+  wildcard?: string;
+  totalItems?: number;
+  totalPages?: number;
+}
+
+export const pageSizeOptions = [5, 10, 20, 50, 100];

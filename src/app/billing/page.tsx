@@ -61,7 +61,7 @@ import {
   buildItemInitState,
   handleSaveEntity,
   IBaseEntity,
-} from "@/services/commun";
+} from "@/services/common";
 
 export const entityName = "billing";
 export const entityPluralName = "billingItems";
@@ -144,7 +144,9 @@ export const buildEntityForms = ({
               const { workOrders }: { workOrders: IEntityWorkOrder[] } =
                 await response.json();
 
-              setSelectOptions(workOrders.map((item: IEntityWorkOrder) => item));
+              setSelectOptions(
+                workOrders.map((item: IEntityWorkOrder) => item),
+              );
             };
 
             React.useEffect(() => {
@@ -621,9 +623,11 @@ function BillingPage() {
                     formData,
                     createEntityService: createEntityBillingService,
                     updateEntityService: updateEntityBillingService,
-                  })(event);
-
-                  setFormData(itemInitState);
+                  })(event)?.then((result) => {
+                    if (result) {
+                      setFormData(itemInitState);
+                    }
+                  });
                 }}
               >
                 <div className="grid grid-cols-4 gap-4 py-4">

@@ -1,5 +1,5 @@
 import { API_URL } from "@/app/consts";
-import { DatasetFilterDto, fetchWrapper } from "../commun";
+import { DatasetFilterDto, fetchWrapper } from "../common";
 
 export const filterWorkOrders = async (
   filterEntitiesPayloadDto: DatasetFilterDto,

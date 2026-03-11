@@ -14,9 +14,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Bell } from "lucide-react";
-import { Input } from "./ui/input";
+import {
+  // Search,
+  Bell,
+} from "lucide-react";
+// import { Input } from "./ui/input";
 import Link from "next/link";
+
+// import "nextjs-reusable-table/dist/index.css";
 
 const userAvatar = {
   id: "user-avatar",
