@@ -45,7 +45,7 @@ import { useTranslations } from "next-intl";
 
 import "nextjs-reusable-table/dist/index.css";
 
-import { IEntity as IEntityWorkOrder } from "@/app/workOrders/page";
+import { IEntity as IEntityWorkOrder } from "@/app/workOrders/entity";
 import {
   createBilling as createEntityBillingService,
   filterBilling as datasetFetchMethod,
@@ -63,11 +63,9 @@ import {
   IBaseEntity,
 } from "@/services/common";
 
-export const entityName = "billing";
-export const entityPluralName = "billingItems";
-export const datasetFetchResponseItemsAttr = "billingItems";
+const datasetFetchResponseItemsAttr = "billingItems";
 
-export interface IEntity extends IBaseEntity {
+interface IEntity extends IBaseEntity {
   workOrder?: IEntityWorkOrder | undefined;
   workOrderString?: string | undefined;
   totalPrice?: number | undefined;
@@ -80,7 +78,7 @@ export interface IEntity extends IBaseEntity {
   createdAt?: string | undefined;
 }
 
-export class Entity implements IEntity {
+class Entity implements IEntity {
   _id: number = -2;
   workOrder?: IEntityWorkOrder | undefined = undefined;
   workOrderString?: string | undefined = undefined;
@@ -96,11 +94,11 @@ export class Entity implements IEntity {
   archivedAt?: string | undefined = undefined;
 }
 
-export const itemInitState = buildItemInitState<IEntity>({
+const itemInitState = buildItemInitState<IEntity>({
   EntityClass: Entity,
 });
 
-export const buildEntityForms = ({
+const buildEntityForms = ({
   translation = (key: string) => key,
   handleFormInputChange = ({}: Record<string, any>) => {},
 }: {
